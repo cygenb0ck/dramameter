@@ -1,0 +1,3 @@
+https://www.zamg.ac.at/cms/de/klima/klimauebersichten/jahrbuch
+
+hat die klimadaten als csv
