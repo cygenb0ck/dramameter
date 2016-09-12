@@ -1,0 +1,7 @@
+*.pyc
+*.kate-swp
+.idea
+.directory
+*.dump
+tmp
+
