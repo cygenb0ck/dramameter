@@ -1,3 +1,5 @@
+config.cfg
+
 *.pyc
 *.kate-swp
 .idea
