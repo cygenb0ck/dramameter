@@ -1,4 +1,5 @@
 config.cfg
+mailman_archives/
 
 *.pyc
 *.kate-swp
