@@ -1,3 +1,25 @@
-https://www.zamg.ac.at/cms/de/klima/klimauebersichten/jahrbuch
 
+https://www.zamg.ac.at/cms/de/klima/klimauebersichten/jahrbuch
 hat die klimadaten als csv
+
+
+
+
+tasks:
+
+- mailman downloader
+-- cookie handling
+
+- parse mailmanarchive
+
+- identify flamewars & [DRAMA] threads
+
+- plot identified threads: mails per day
+
+
+- plot weather data
+
+- find correlation
+
+- predict flame potential based on temperature forecast
+
