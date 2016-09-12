@@ -7,9 +7,6 @@ hat die klimadaten als csv
 
 tasks:
 
-- mailman downloader
--- cookie handling
-
 - parse mailmanarchive
 
 - identify flamewars & [DRAMA] threads
