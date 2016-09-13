@@ -48,7 +48,6 @@ def merge_archives(archive_list, dest):
     subprocess.call(cmd, shell = True)
 
 
-
 if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read('config.cfg')
