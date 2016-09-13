@@ -8,6 +8,7 @@ import os
 session = None
 config = None
 
+# if True get_archive will not download, assumes data is already on disk
 LOCAL = True
 
 def get_archive( archive_name ):
