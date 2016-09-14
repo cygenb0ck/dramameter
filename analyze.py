@@ -105,42 +105,6 @@ def get_mails_per_interval(mbox, interval_pattern):
     return mails_per_interval
 
 
-def test_plot(tags_by_interval, func_date_key_to_timestamp, filename=None):
-    sorted_keys = tags_by_interval.keys()
-    sorted_keys.sort()
-    # print sorted_keys
-    # plotvalues
-    pvals = {}
-    #    for date_key, tags_by_tag in tags_by_interval.iteritems():
-    for date_key in sorted_keys:
-        # print date_key
-        tags_by_tag = tags_by_interval[date_key]
-        for tag, count in tags_by_tag.iteritems():
-            # print(tag)
-            if tag not in pvals:
-                pvals[tag] = {'xvals': list(), 'yvals': list()}
-
-            date_val = func_date_key_to_timestamp(date_key) / (3600 * 24)
-
-            pvals[tag]['xvals'].append(date_val)
-            pvals[tag]['yvals'].append(count)
-
-    # save_pretty_json( pvals, 'pvals.json' )
-
-    plt.clf()
-    for tag, vals in pvals.iteritems():
-        # print tag
-        # x_range = range( len(  vals['xvals'] ) )
-        # plt.xticks( x_range, vals['xvals'] )
-        # plt.plot( x_range, vals['yvals'] )
-        plt.plot(vals['xvals'], vals['yvals'])
-    # plt.show()
-    if filename == None:
-        plt.show()
-    else:
-        plt.savefig(filename)
-
-
 '''
 You must first convert your timestamps to Python datetime objects (use datetime.strptime).
 Then use date2num to convert the dates to matplotlib format.
@@ -167,8 +131,40 @@ def plot_by_all( data ):
     plt.plot(x_vals2, y_vals)
     plt.show()
 
-# def plot_by_interval(data, interval_pattern)
-    
+def plot_by_interval(data):
+    p_vals = {}
+    for k in sorted(data):
+        v = data[k]
+        d_obj = datetime.datetime.strptime(k, key_pattern)
+
+        series_key = datetime.datetime.strftime(d_obj, "%Y")
+        #data_key = datetime.datetime.strftime(d_obj, "%m-%d")
+
+        p_vals.setdefault(series_key, dict()).setdefault("x_vals", list()).append(d_obj)
+        p_vals.setdefault(series_key, dict()).setdefault("y_vals", list()).append(v)
+
+    plt.clf()
+
+    fig, axis = plt.subplots(nrows=len(p_vals), sharex=False, sharey=True)
+
+    a_iter = iter(axis)
+
+    for k in sorted(p_vals):
+        v = p_vals[k]
+        ax = next(a_iter)
+        y_vals = v["y_vals"]
+        x_vals = matplotlib.dates.date2num(v["x_vals"])
+        ax.plot_date(x_vals, y_vals)
+        #ax.plot(x_vals, y_vals)
+
+    # for k, v in p_vals.items():
+    #     y_vals = v["y_vals"]
+    #     x_vals = matplotlib.dates.date2num( v["x_vals"] )
+    #     plt.plot_date(x_vals, y_vals)
+    #     #plt.plot(x_vals, y_vals)
+
+    plt.show()
+
 
 
 if __name__ == "__main__":
@@ -181,4 +177,5 @@ if __name__ == "__main__":
     # save_pretty_json(mpd, "mpd.json")
 
     mpd = load_json("mpd.json")
-    plot_by_all(mpd)
+#    plot_by_all(mpd)
+    plot_by_interval(mpd)
