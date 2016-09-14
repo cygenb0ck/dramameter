@@ -5,14 +5,16 @@ import datetime
 
 config = None
 
+
 datetime_patterns = [
     "%a, %d %b %Y %H:%M:%S %z",       # "Sun, 30 Apr 2006 19:19:01 +0200"
-    "%a, %d %b %Y %H:%M:%S %z (%Z)",  # "Mon, 8 Aug 2016 19:27:36 +0000 (UTC)"
     "%a, %d %b %Y %H:%M:%S %Z",       # "Fri, 25 Jul 2014 16:48:04 GMT"
-    "%a, %d %b %Y %H:%M:%S %z (PDT)", # "Thu, 6 Jun 2013 08:43:06 -0700 (PDT)"
-    "%a, %d %b %Y %H:%M %z"           # "Tue, 11 Jun 2013 09:00 +0200"
+    "%a, %d %b %Y %H:%M %z",          # "Tue, 11 Jun 2013 09:00 +0200"
+    "%d %b %Y %H:%M:%S %z"            # "28 Aug 2008 12:58:53 +0000"
+    #"%a, %d %b %Y %H:%M:%S %z (%Z)",  # "Mon, 8 Aug 2016 19:27:36 +0000 (UTC)"
+    #"%a, %d %b %Y %H:%M:%S %z (PDT)", # "Thu, 6 Jun 2013 08:43:06 -0700 (PDT)"
+    #"%a, %d %b %Y %H:%M:%S %z (EST)"  # "Sat, 9 Feb 2013 21:56:22 -0500 (EST)"
 ]
-
 
 def find_date_formats(mbox):
     print("blubb")
@@ -22,6 +24,10 @@ def find_date_formats(mbox):
         # mail archive contains one message with has no date
         if d_str is None:
             continue
+
+        # remove timezone string identifier so we dont have to have use
+        # a separate pettern for each unsupported timezone
+        d_str = d_str.split(' (')[0]
 
         parseable = False
         for d_pattern in datetime_patterns:
