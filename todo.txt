@@ -7,8 +7,6 @@ hat die klimadaten als csv
 
 tasks:
 
-- parse mailmanarchive
-
 - identify flamewars & [DRAMA] threads
 
 - plot identified threads: mails per day
