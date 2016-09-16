@@ -7,6 +7,7 @@ import json
 import matplotlib.pyplot as plt
 import matplotlib
 
+import zamg
 
 config = None
 
@@ -131,8 +132,9 @@ def plot_by_all( data ):
     plt.plot(x_vals2, y_vals)
     plt.show()
 
-def plot_by_interval(data):
+def plot_by_interval(data, zamg_dfs = None):
     p_vals = {}
+    # sort by year
     for k in sorted(data):
         v = data[k]
         d_obj = datetime.datetime.strptime(k, key_pattern)
@@ -145,26 +147,26 @@ def plot_by_interval(data):
 
     plt.clf()
 
-    fig, axis = plt.subplots(nrows=len(p_vals), sharex=False, sharey=True)
+    fig, axis = plt.subplots(nrows=len(p_vals)*2, sharex=False, sharey=False)
 
     a_iter = iter(axis)
 
     for k in sorted(p_vals):
         v = p_vals[k]
         ax = next(a_iter)
+
         y_vals = v["y_vals"]
         x_vals = matplotlib.dates.date2num(v["x_vals"])
         ax.plot_date(x_vals, y_vals)
-        #ax.plot(x_vals, y_vals)
+        # ax.plot(x_vals, y_vals)
 
-    # for k, v in p_vals.items():
-    #     y_vals = v["y_vals"]
-    #     x_vals = matplotlib.dates.date2num( v["x_vals"] )
-    #     plt.plot_date(x_vals, y_vals)
-    #     #plt.plot(x_vals, y_vals)
+        ax = next(a_iter)
+        if zamg_dfs is not None and k in zamg_dfs:
+            df = zamg_dfs[k]
+            df['Wien Hohe Warte']['48,2486']['16,3564']['198.0']['Anhöhe']['Ebene']\
+                ['Lufttemperatur']['Lufttemperatur um 14 MEZ (°C)'].plot(ax=ax)
 
     plt.show()
-
 
 
 if __name__ == "__main__":
@@ -173,9 +175,14 @@ if __name__ == "__main__":
 
     # mbox = mailbox.mbox( config['MAILMAN']['merged_mbox'] )
     # #find_date_formats(mbox)
+
     # mpd = get_mails_per_interval(mbox, key_pattern)
     # save_pretty_json(mpd, "mpd.json")
-
     mpd = load_json("mpd.json")
+
+    zamg_list = zamg.transpose_files(config['ZAMG']['local_storage'], config['ZAMG']['filename_pattern'])
+    zamg_dfs = zamg.open_files(zamg_list)
+
+
 #    plot_by_all(mpd)
-    plot_by_interval(mpd)
+    plot_by_interval(mpd, zamg_dfs)
