@@ -73,6 +73,14 @@ def plot_files( dfs ):
 
     plt.show()
 
+def get_dfs_where_T_gt_val(dfs_in, T):
+    #In [15]: d = dfs['2015']['Wien Hohe Warte']['48,2486']['16,3564']['198.0']['Anhöhe']['Ebene']['Lufttemperatur']['Lufttemperatur um 14 MEZ (°C)']
+    #In [16]: sub = d.loc[ d >= 30.0 ]
+    dfs_out = {}
+    for k, df in dfs_in.items():
+        d = df['Wien Hohe Warte']['48,2486']['16,3564']['198.0']['Anhöhe']['Ebene']['Lufttemperatur']['Lufttemperatur um 14 MEZ (°C)']
+        dfs_out[k] = d.loc[d >= T ]
+    return dfs_out
 
 if __name__ == "__main__":
     config = configparser.ConfigParser()
@@ -81,4 +89,5 @@ if __name__ == "__main__":
     t_files = transpose_files(config['ZAMG']['local_storage'], config['ZAMG']['filename_pattern'])
     # plot_temp(t_files[0])
     dfs = open_files(t_files)
-    plot_files(dfs)
+    #plot_files(dfs)
+    d = get_dfs_where_T_gt_val(dfs, 30.0)
