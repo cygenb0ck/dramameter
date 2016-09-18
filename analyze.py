@@ -169,6 +169,45 @@ def plot_by_interval(data, zamg_dfs = None):
     plt.show()
 
 
+def reformat_dateteime( in_date, in_pattern, out_pattern ):
+    d = datetime.datetime.strptime(in_date, in_pattern)
+    return datetime.datetime.strftime(d, out_pattern)
+
+
+def get_pvals_for_mpds_by_dfs(mpd, filtered_dfs):
+    p_vals = {}
+
+    for period_id, df in filtered_dfs.items():
+        for i in df.index:
+            d_obj = datetime.datetime.strptime(i, "%d.%m.%Y")
+            mpd_key = reformat_dateteime(i, "%d.%m.%Y", "%Y-%m-%d")
+            p_vals.setdefault(period_id, dict()).setdefault("x_vals", list()).append(d_obj)
+            p_vals.setdefault(period_id, dict()).setdefault("y_vals", list()).append( mpd.get(mpd_key, 0) )
+    return p_vals
+
+
+def plot_pvals_filtered_dfs(p_vals, filtered_dfs):
+        plt.clf()
+        fig, axis = plt.subplots(nrows=len(p_vals) * 2, sharex=False, sharey=False)
+
+        a_iter = iter(axis)
+
+        for k in sorted(p_vals):
+            v = p_vals[k]
+            ax = next(a_iter)
+
+            y_vals = v["y_vals"]
+            x_vals = matplotlib.dates.date2num(v["x_vals"])
+            ax.plot_date(x_vals, y_vals)
+            # ax.plot(x_vals, y_vals)
+
+            ax = next(a_iter)
+            if filtered_dfs is not None and k in filtered_dfs:
+                df = filtered_dfs[k]
+                df.plot(ax=ax, kind='line')
+
+        plt.show()
+
 if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read('config.cfg')
@@ -183,6 +222,10 @@ if __name__ == "__main__":
     zamg_list = zamg.transpose_files(config['ZAMG']['local_storage'], config['ZAMG']['filename_pattern'])
     zamg_dfs = zamg.open_files(zamg_list)
 
+    filtered_dfs = zamg.get_dfs_where_T_gt_val(zamg_dfs, 30.0)
+
 
 #    plot_by_all(mpd)
-    plot_by_interval(mpd, zamg_dfs)
+#     plot_by_interval(mpd, zamg_dfs)
+    p_vals = get_pvals_for_mpds_by_dfs(mpd, filtered_dfs)
+    plot_pvals_filtered_dfs(p_vals, filtered_dfs)
