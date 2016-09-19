@@ -235,7 +235,9 @@ if __name__ == "__main__":
     zamg_list = zamg.transpose_files(config['ZAMG']['local_storage'], config['ZAMG']['filename_pattern'])
     zamg_dfs = zamg.open_files(zamg_list)
 
-    filtered_dfs = zamg.get_dfs_where_T_gt_val(zamg_dfs, 25.0)
+    # filtered_dfs = zamg.get_dfs_where_T_gt_val(zamg_dfs, 25.0)
+    column_descriptor = ('Wien Hohe Warte','48,2486','16,3564','198.0','Anhöhe','Ebene','Lufttemperatur','Lufttemperatur um 14 MEZ (°C)')
+    filtered_dfs = zamg.get_dfs_where_val_gt(zamg_dfs, column_descriptor, 25.0)
 
 
 #    plot_by_all(mpd)
