@@ -185,13 +185,13 @@ def get_pvals_for_mpds_by_dfs(mpd, filtered_dfs):
     return p_vals
 
 
-def plot_pvals_filtered_dfs(p_vals, filtered_dfs, year = None):
+def plot_pvals_filtered_dfs(p_vals, filtered_dfs, years = None):
     year_count = len(p_vals)
 
-    if year is not None:
+    if years is not None:
         i = 0
         for k in p_vals:
-            if year is not None and not k in year:
+            if not k in years:
                 continue
             i += 1
 
@@ -203,7 +203,7 @@ def plot_pvals_filtered_dfs(p_vals, filtered_dfs, year = None):
     a_iter = iter(axis)
 
     for k in sorted(p_vals):
-        if year is not None and not k in year:
+        if years is not None and not k in years:
             continue
 
         v = p_vals[k]
@@ -211,13 +211,13 @@ def plot_pvals_filtered_dfs(p_vals, filtered_dfs, year = None):
 
         y_vals = v["y_vals"]
         x_vals = matplotlib.dates.date2num(v["x_vals"])
-        ax.plot_date(x_vals, y_vals)
+        ax.plot_date(x_vals, y_vals, marker='x')
         # ax.plot(x_vals, y_vals)
 
         ax = next(a_iter)
         if filtered_dfs is not None and k in filtered_dfs:
             df = filtered_dfs[k]
-            df.plot(ax=ax, kind='line')
+            df.plot(ax=ax, marker='+', linestyle='' )
 
     plt.show()
 
