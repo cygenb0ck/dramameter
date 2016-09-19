@@ -42,7 +42,10 @@ def open_files( file_list ):
     dfs = {}
     for full_file_name in file_list:
         year = full_file_name.split("/")[-1].split("_")[0]
-        dfs[year] = pandas.read_csv(full_file_name, header=[1,2,3,4,5,6,7,8], index_col=0, decimal=',')
+        df = pandas.read_csv(full_file_name, header=[1,2,3,4,5,6,7,8], index_col=0, decimal=',')
+        # convert index to datetime
+        df.index = pandas.to_datetime( df.index, format="%d.%m.%Y")
+        dfs[year] = df
     return dfs
 
 
