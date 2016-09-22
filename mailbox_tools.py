@@ -87,9 +87,11 @@ class MailThread():
     def __init__(self, root):
         self.root = root
         self._members = []
-        self._members.append(self.root.get_message_id)
+        self._members.append(self.root.get_message_id())
+        self.started = root.get_date_as_datetime()
+        self.end = root.get_date_as_datetime()
 
-    def is_member_of(self, message_id):
+    def contains_message_id(self, message_id):
         if message_id in self._members:
             return True
         return False
@@ -98,7 +100,18 @@ class MailThread():
         added = self.root.add_member(email)
         if added:
             self._members.append(email.get_message_id())
+            end_dt = email.get_date_as_datetime()
+            if end_dt > self.end:
+                self.end = end_dt
+
         return added
+
+
+    def get_plot_values(self, interval_func):
+        p_vals = {
+            'x_vals' : list(),
+            'y_vals' : list()
+        }
 
 
 class Mailbox():
@@ -146,7 +159,7 @@ class Mailbox():
                 t = self.threads_per_day[rev_key]
                 found = False
                 for t  in self.threads_per_day[rev_key]:
-                    if t.is_member_of( reply.get_in_reply_to() ):
+                    if t.contains_message_id(reply.get_in_reply_to()):
                         found = t.add_child(reply)
                         break;
                 if found:
