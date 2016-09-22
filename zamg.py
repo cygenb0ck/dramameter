@@ -44,7 +44,7 @@ def open_files( file_list ):
         year = full_file_name.split("/")[-1].split("_")[0]
         df = pandas.read_csv(full_file_name, header=[1,2,3,4,5,6,7,8], index_col=0, decimal=',')
         # convert index to datetime
-        df.index = pandas.to_datetime( df.index, format="%d.%m.%Y")
+        df.index = pandas.to_datetime( df.index, format="%d.%m.%Y" ).tz_localize("CET")
         dfs[year] = df
     return dfs
 
