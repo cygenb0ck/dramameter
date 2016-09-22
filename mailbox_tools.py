@@ -2,6 +2,7 @@ import mailbox
 from email.utils import parsedate
 import dateutil.parser
 import datetime
+import itertools
 
 
 def extract_date(email):
@@ -82,13 +83,24 @@ class EMail():
                     return added
             return added
 
+    def get_interval_keys_r(self,interval_pattern, interval_key_list):
+        key = datetime.datetime.strftime( self.get_date_as_datetime(), interval_pattern )
+        interval_key_list.append(key)
+        for c in self.children:
+            interval_key_list = c.get_interval_keys_r(interval_pattern, interval_key_list)
+        return interval_key_list
+
 
 class MailThread():
     def __init__(self, root):
+        # the starting message
         self.root = root
+        # list holding the massage_ids of the participating mails
         self._members = []
         self._members.append(self.root.get_message_id())
+        # start datetime of thread
         self.started = root.get_date_as_datetime()
+        # datetime of the last mail
         self.end = root.get_date_as_datetime()
 
     def contains_message_id(self, message_id):
@@ -107,11 +119,27 @@ class MailThread():
         return added
 
 
-    def get_plot_values(self, interval_func):
-        p_vals = {
-            'x_vals' : list(),
-            'y_vals' : list()
-        }
+    def get_plot_values(self, interval_pattern):
+        interval_key_list = self.root.get_interval_keys_r(interval_pattern, [])
+
+        # count the frequency of the keys in interval_key_list
+        count_per_interval = { key : len(list(group)) for key, group in itertools.groupby(interval_key_list)}
+
+        accum_counts = {}
+        prev_key = None
+        for k, v in sorted(count_per_interval.items()):
+            if prev_key is None:
+                accum_counts[k] = v
+            else:
+                accum_counts[k] = accum_counts[prev_key] + v
+            prev_key = k
+
+        p_vals = {}
+        for ik, count in sorted( accum_counts.items()):
+            p_vals.setdefault('x_vals', []).append(datetime.datetime.strptime(ik, interval_pattern))
+            p_vals.setdefault('y_vals', []).append(count)
+
+        return p_vals
 
 
 class Mailbox():
@@ -165,29 +193,11 @@ class Mailbox():
                 if found:
                     break
 
-
-    def build_threads_old(self):
-        self._build_start_indices()
-
-        for s_i in self._start_indices:
-            start_mail = EMail(self._mbox[s_i])
-            self.threads_per_day.append(start_mail)
-
-            self._find_children(start_mail)
-
-    def _find_children(self, parent):
-        i_to_be_removed = []
-        for r_i in self._reply_indices:
-            if self._mbox[r_i]["In-Reply-To"] == parent.get_message_id():
-                child = EMail( self._mbox[r_i] )
-                child.set_parent(parent)
-                parent.append_child(child)
-                i_to_be_removed.append(r_i)
-        #l3 = [x for x in l1 if x not in l2]
-        self._reply_indices = [ r_i for r_i in self._reply_indices if r_i not in i_to_be_removed ]
-        print("r_indices: ", len(self._reply_indices))
-        for child in parent.children:
-            self._find_children(child)
-
+    def get_plot_values(self, interval_pattern):
+        p_vals = []
+        for day_key,threads in self.threads_per_day.items():
+            for t in threads:
+                p_vals.append(t.get_plot_values(interval_pattern))
+        return p_vals
 
 
