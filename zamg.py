@@ -49,20 +49,18 @@ def open_files( file_list ):
     return dfs
 
 
-def get_temp_column_from_df( df ):
-    return df['Wien Hohe Warte']['48,2486']['16,3564']['198.0']['Anhöhe']['Ebene']\
-        ['Lufttemperatur']['Lufttemperatur um 14 MEZ (°C)']
+def concat_dfs( dfs ):
+    df = pandas.concat( list(dfs.values()) )
+    return df
 
 
-def plot_temp(zamg_file):
-    print(zamg_file)
-    df = pandas.read_csv(zamg_file, header=[1,2,3,4,5,6,7,8], index_col=0, decimal=',')
-    df['Wien Hohe Warte']['48,2486']['16,3564']['198.0']['Anhöhe']['Ebene']\
-        ['Lufttemperatur']['Lufttemperatur um 14 MEZ (°C)'].plot()
+def plot_df(df, column_descriptor):
+    plt.clf()
+    df.loc[:, column_descriptor].plot()
     plt.show()
 
 
-def plot_files( dfs ):
+def plot_dfs(dfs):
     plt.clf()
 
     fig, axes = plt.subplots( nrows = len(dfs), sharey=True )
