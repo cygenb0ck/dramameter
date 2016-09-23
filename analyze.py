@@ -2,12 +2,16 @@
 import configparser
 import mailbox
 import datetime
+import pytz
+import dateutil.parser
 import json
 
 import matplotlib.pyplot as plt
 import matplotlib
 
 import zamg
+import mailbox_tools
+
 
 config = None
 
@@ -37,6 +41,8 @@ def load_json( filename ):
     raw_data  = open( filename ).read()
     json_data = json.loads( raw_data )
     return json_data
+
+
 
 
 def find_date_formats(mbox):
@@ -83,6 +89,8 @@ def get_datetime_from_string( d_str ):
             print("caught TypeError!")
             print("d_str:     ", d_str)
     raise DateFormatException("Cannot parse ", d_str)
+
+
 
 
 def get_mails_per_interval(mbox, interval_pattern):
@@ -225,10 +233,14 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read('config.cfg')
 
-    # mbox = mailbox.mbox( config['MAILMAN']['merged_mbox'] )
+    mbox = mailbox.mbox(config['MAILMAN']['merged_mbox'])
+    # mbox = mailbox.mbox( "./mailman_archives/2006-April.txt" )
+    # mbox = mailbox.mbox( "./mailman_archives/test.txt" )
+    mailbox_tools.fix_mbox(mbox)
+    mailbox_tools.sort_mbox(mbox)
     # #find_date_formats(mbox)
 
-    # mpd = get_mails_per_interval(mbox, key_pattern)
+    #mpd = get_mails_per_interval(mbox, key_pattern)
     # save_pretty_json(mpd, "mpd.json")
     mpd = load_json("mpd.json")
 
@@ -242,5 +254,16 @@ if __name__ == "__main__":
 
 #    plot_by_all(mpd)
 #     plot_by_interval(mpd, zamg_dfs)
-    p_vals = get_pvals_for_mpds_by_dfs(mpd, filtered_dfs)
-    plot_pvals_filtered_dfs(p_vals, filtered_dfs, ["2014","2015"])
+
+#     p_vals = get_pvals_for_mpds_by_dfs(mpd, filtered_dfs)
+#     plot_pvals_filtered_dfs(p_vals, filtered_dfs, ["2014","2015"])
+
+    # visulaize mailing list
+    intern = mailbox_tools.Mailbox(mbox)
+    intern.build_threads()
+    i_p_vals = intern.get_plot_values("%Y-%m-%d-%H")
+    plt.clf()
+    for p_vals in i_p_vals:
+        plt.plot( p_vals['x_vals'], p_vals['y_vals'] )
+    plt.show()
+
