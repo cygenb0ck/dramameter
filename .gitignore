@@ -1,5 +1,6 @@
 config.cfg
 mailman_archives/
+zamg_data/
 
 *.pyc
 *.kate-swp
