@@ -103,7 +103,7 @@ class MailThread():
         self._members = []
         self._members.append(self.root.get_message_id())
         # start datetime of thread
-        self.started = root.get_utc_datetime()
+        self.start = root.get_utc_datetime()
         # datetime of the last mail
         self.end = root.get_utc_datetime()
 
@@ -149,11 +149,12 @@ class Mailbox():
     def __init__(self, mbox):
         self._mbox = mbox
         self.threads_per_day = {}
-
-    def _build_start_indices(self):
         self._start_indices = []
         self._reply_indices = []
+        self.start = None
+        self.end = None
 
+    def _build_start_indices(self):
         for k, v in self._mbox.items():
             if v["In-Reply-To"] is None:
                 self._start_indices.append(k)
@@ -204,9 +205,9 @@ class Mailbox():
                 print("message {} belongs to older thread".format(reply.get_message_id()))
                 continue
 
-            in_bounds, start = self._get_start_index2(reply.get_utc_datetime())
+            in_bounds, start = self._get_start_index(reply.get_utc_datetime())
             if not in_bounds:
-                print("already out of bounds")
+                # print("already out of bounds")
                 continue
 
             found = False
@@ -220,6 +221,20 @@ class Mailbox():
                     break
             if not found:
                 print("message {} belongs to older thread".format(reply.get_message_id()))
+
+        start_threads = self.threads_per_day[ list(sorted(self.threads_per_day.keys()))[0] ]
+        for thread in start_threads:
+            if self.start == None or thread.start < self.start:
+                self.start = thread.start
+        for k,tpd in self.threads_per_day.items():
+            for t in tpd:
+                if self.end == None or t.end > self.end:
+                    self.end = t.end
+
+        print("threads started on ", self.start.isoformat())
+        print("threads ended on   ", self.end.isoformat())
+
+
 
     def get_plot_values(self, interval_pattern):
         p_vals = []
