@@ -11,6 +11,7 @@ import matplotlib
 
 import zamg
 import mailbox_tools
+import datetime_tools
 
 
 config = None
@@ -43,6 +44,14 @@ def load_json( filename ):
     return json_data
 
 
+
+def convert_and_check_time( mbox ):
+    for k, v in mbox.items():
+        d_str = v["Date"]
+        if d_str == None:
+            continue
+
+        dt = dateutil.parser.parse(d_str)
 
 
 def find_date_formats(mbox):
@@ -235,10 +244,11 @@ if __name__ == "__main__":
 
     mbox = mailbox.mbox(config['MAILMAN']['merged_mbox'])
     # mbox = mailbox.mbox( "./mailman_archives/2006-April.txt" )
-    # mbox = mailbox.mbox( "./mailman_archives/test.txt" )
-    mailbox_tools.fix_mbox(mbox)
-    mailbox_tools.sort_mbox(mbox)
-    # #find_date_formats(mbox)
+    # mbox = mailbox.mbox( "./mailman_archives/2015_merged.txt" )
+    # mailbox_tools.fix_mbox(mbox)
+    # mailbox_tools.sort_mbox(mbox)
+
+    # find_date_formats(mbox)
 
     #mpd = get_mails_per_interval(mbox, key_pattern)
     # save_pretty_json(mpd, "mpd.json")
@@ -247,10 +257,13 @@ if __name__ == "__main__":
     zamg_list = zamg.transpose_files(config['ZAMG']['local_storage'], config['ZAMG']['filename_pattern'])
     zamg_dfs = zamg.open_files(zamg_list)
 
+    zamg_df = zamg.concat_dfs(zamg_dfs)
+
+    # zamg.plot_df(zamg_df, ('Wien Hohe Warte','48,2486','16,3564','198.0','Anhöhe','Ebene','Lufttemperatur','Lufttemperatur um 14 MEZ (°C)'))
+
     # filtered_dfs = zamg.get_dfs_where_T_gt_val(zamg_dfs, 25.0)
     column_descriptor = ('Wien Hohe Warte','48,2486','16,3564','198.0','Anhöhe','Ebene','Lufttemperatur','Lufttemperatur um 14 MEZ (°C)')
     filtered_dfs = zamg.get_dfs_where_val_gt(zamg_dfs, column_descriptor, 25.0)
-
 
 #    plot_by_all(mpd)
 #     plot_by_interval(mpd, zamg_dfs)
@@ -258,12 +271,30 @@ if __name__ == "__main__":
 #     p_vals = get_pvals_for_mpds_by_dfs(mpd, filtered_dfs)
 #     plot_pvals_filtered_dfs(p_vals, filtered_dfs, ["2014","2015"])
 
-    # visulaize mailing list
+
+
+    # # visualize mailing list
     intern = mailbox_tools.Mailbox(mbox)
     intern.build_threads()
+
+    # df.loc[ df.index > "2006.12.25" ]
+
+    t_wien = zamg_df.loc[:,column_descriptor]
+    #mask = (df['date'] > start_date) & (df['date'] <= end_date)
+    t_wien = t_wien.loc[ ( t_wien.index >= intern.start) & ( t_wien.index <= intern.end )  ]
+
+
     i_p_vals = intern.get_plot_values("%Y-%m-%d-%H")
     plt.clf()
+    fig, ax1 = plt.subplots()
+
     for p_vals in i_p_vals:
-        plt.plot( p_vals['x_vals'], p_vals['y_vals'] )
+        ax1.plot( p_vals['x_vals'], p_vals['y_vals'], color="b" )
+
+    # ax1.set_yscale("log")
+
+    ax2 = ax1.twinx()
+    t_wien.plot( ax=ax2, color="r" )
+
     plt.show()
 
