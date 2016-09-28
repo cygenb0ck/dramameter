@@ -251,11 +251,9 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read('config.cfg')
 
-    mbox = mailbox.mbox(config['MAILMAN']['merged_mbox'])
-    # mbox = mailbox.mbox( "./mailman_archives/2006-April.txt" )
-    # mbox = mailbox.mbox( "./mailman_archives/2015_merged.txt" )
-    # mailbox_tools.fix_mbox(mbox)
-    # mailbox_tools.sort_mbox(mbox)
+    intern_alt = mailbox_tools.Mailbox( "./mailman_archives/2006-May.txt" )
+    # intern_alt = mailbox_tools.Mailbox( "./mailman_archives/2015_merged.txt" )
+    # intern_alt = mailbox_tools.Mailbox( config['MAILMAN']['merged_mbox'] )
 
     # find_date_formats(mbox)
 
@@ -268,7 +266,6 @@ if __name__ == "__main__":
 
     zamg_df = zamg.concat_dfs(zamg_dfs)
 
-    # zamg.plot_df(zamg_df, ('Wien Hohe Warte','48,2486','16,3564','198.0','Anhöhe','Ebene','Lufttemperatur','Lufttemperatur um 14 MEZ (°C)'))
 
     # filtered_dfs = zamg.get_dfs_where_T_gt_val(zamg_dfs, 25.0)
     column_descriptor = ('Wien Hohe Warte','48,2486','16,3564','198.0','Anhöhe','Ebene','Lufttemperatur','Lufttemperatur um 14 MEZ (°C)')
@@ -283,28 +280,30 @@ if __name__ == "__main__":
 
 
     # # visualize mailing list
-    intern = mailbox_tools.Mailbox(mbox)
-    intern.build_threads()
 
-    # df.loc[ df.index > "2006.12.25" ]
+    intern_alt.build_threads_alt()
+    # intern_alt.build_threads()
 
     t_wien = zamg_df.loc[:,column_descriptor]
     #mask = (df['date'] > start_date) & (df['date'] <= end_date)
-    t_wien = t_wien.loc[ ( t_wien.index >= intern.start) & ( t_wien.index <= intern.end )  ]
+    t_wien = t_wien.loc[ ( t_wien.index >= intern_alt.start) & ( t_wien.index <= intern_alt.end )  ]
 
 
-    i_p_vals = intern.get_plot_values("%Y-%m-%d-%H")
-    save_pretty_json(i_p_vals, 'i_p_vals_BRANCH_ZAMG_INVESTIGATION.json')
+    i_p_vals_alt = intern_alt.get_plot_values("%Y-%m-%d-%H")
+    save_pretty_json(i_p_vals_alt, 'i_p_vals_alt_BRANCH_FIX.json')
+
     plt.clf()
     fig, ax1 = plt.subplots()
+    ax2 = ax1.twinx()
 
-    for p_vals in i_p_vals:
-        ax1.plot( p_vals['x_vals'], p_vals['y_vals'], color="b" )
+    for p_vals in i_p_vals_alt:
+        ax1.plot( p_vals['x_vals'], p_vals['y_vals'])
+        # ax1.plot(p_vals['x_vals'], p_vals['y_vals'], color="b")
 
     # ax1.set_yscale("log")
 
-    ax2 = ax1.twinx()
-    t_wien.plot( ax=ax2, color="r" )
+    # t_wien.plot( ax=ax2 )
+    # t_wien.plot( ax=ax2, color="r" )
 
     plt.show()
 
