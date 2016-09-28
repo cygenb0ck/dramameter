@@ -262,8 +262,8 @@ if __name__ == "__main__":
     intern = mailbox_tools.Mailbox(mbox)
     intern.build_threads()
 
-    zamg_df = zamg.concat_dfs(zamg_dfs)
-    t_wien = zamg_df.loc[:, column_descriptor]
+    # zamg_df = zamg.concat_dfs(zamg_dfs)
+    t_wien = zamg_dfs['2006'].loc[:, column_descriptor]
     # t_wien = t_wien.loc[(t_wien.index >= intern.started) & (t_wien.index <= intern.end)]
 
     i_p_vals = intern.get_plot_values("%Y-%m-%d-%H")
