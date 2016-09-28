@@ -233,8 +233,8 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read('config.cfg')
 
-    mbox = mailbox.mbox(config['MAILMAN']['merged_mbox'])
-    # mbox = mailbox.mbox( "./mailman_archives/2006-April.txt" )
+    # mbox = mailbox.mbox(config['MAILMAN']['merged_mbox'])
+    mbox = mailbox.mbox( "./mailman_archives/2006-April.txt" )
     # mbox = mailbox.mbox( "./mailman_archives/test.txt" )
     mailbox_tools.fix_mbox(mbox)
     mailbox_tools.sort_mbox(mbox)
@@ -261,9 +261,19 @@ if __name__ == "__main__":
     # visulaize mailing list
     intern = mailbox_tools.Mailbox(mbox)
     intern.build_threads()
+
+    zamg_df = zamg.concat_dfs(zamg_dfs)
+    t_wien = zamg_df.loc[:, column_descriptor]
+    # t_wien = t_wien.loc[(t_wien.index >= intern.started) & (t_wien.index <= intern.end)]
+
     i_p_vals = intern.get_plot_values("%Y-%m-%d-%H")
     plt.clf()
+    fig, ax1 = plt.subplots()
     for p_vals in i_p_vals:
-        plt.plot( p_vals['x_vals'], p_vals['y_vals'] )
+        ax1.plot( p_vals['x_vals'], p_vals['y_vals'] )
+
+    ax2 = ax1.twinx()
+    t_wien.plot(ax=ax2)
+
     plt.show()
 
