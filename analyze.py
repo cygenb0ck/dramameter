@@ -243,7 +243,7 @@ if __name__ == "__main__":
     config.read('config.cfg')
 
     # mbox = mailbox.mbox(config['MAILMAN']['merged_mbox'])
-    mbox = mailbox.mbox( "./mailman_archives/2006-April.txt" )
+    mbox = mailbox.mbox( "./mailman_archives/2006-May.txt" )
     # mbox = mailbox.mbox( "./mailman_archives/test.txt" )
     mailbox_tools.fix_mbox(mbox)
     mailbox_tools.sort_mbox(mbox)
