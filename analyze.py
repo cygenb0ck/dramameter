@@ -33,9 +33,18 @@ key_pattern = "%Y-%m-%d" # "2008-08-28"
 class DateFormatException(Exception):
     pass
 
+class DatetimeEncoder(json.JSONEncoder):
+
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            # return int(mktime(obj.timetuple()))
+            return obj.isoformat()
+
+        return json.JSONEncoder.default(self, obj)
+
 def save_pretty_json( json_data, filename ):
     outfile = open( filename, "w")
-    outfile.write( json.dumps(json_data, indent = 4, sort_keys = True ) )
+    outfile.write( json.dumps(json_data, indent = 4, sort_keys = True, cls=DatetimeEncoder ) )
     outfile.close()
 
 def load_json( filename ):
@@ -285,6 +294,7 @@ if __name__ == "__main__":
 
 
     i_p_vals = intern.get_plot_values("%Y-%m-%d-%H")
+    save_pretty_json(i_p_vals, 'i_p_vals_BRANCH_ZAMG_INVESTIGATION.json')
     plt.clf()
     fig, ax1 = plt.subplots()
 
