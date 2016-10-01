@@ -284,26 +284,35 @@ if __name__ == "__main__":
     intern_alt.build_threads_alt()
     # intern_alt.build_threads()
 
-    t_wien = zamg_df.loc[:,column_descriptor]
     #mask = (df['date'] > start_date) & (df['date'] <= end_date)
-    t_wien = t_wien.loc[ ( t_wien.index >= intern_alt.start) & ( t_wien.index <= intern_alt.end )  ]
+    t_wien = zamg_df.loc[ ( zamg_df.index > intern_alt.start) & ( zamg_df.index < intern_alt.end )  ]
+    t_wien = t_wien.loc[:,column_descriptor]
 
 
     i_p_vals_alt = intern_alt.get_plot_values("%Y-%m-%d-%H")
     save_pretty_json(i_p_vals_alt, 'i_p_vals_alt_BRANCH_FIX.json')
 
+
+    i_p_vals_from_other_working_branch = load_json("i_p_vals_BRANCH_ZAMG_INVESTIGATION.json")
+    for pv_entry in i_p_vals_from_other_working_branch:
+        pv_entry["x_vals"] = [ datetime_tools.get_utc_datetime_from_isoformat(x) for x in pv_entry["x_vals"] ]
+
+
     plt.clf()
     fig, ax1 = plt.subplots()
     ax2 = ax1.twinx()
 
-    for p_vals in i_p_vals_alt:
-        ax1.plot( p_vals['x_vals'], p_vals['y_vals'])
-        # ax1.plot(p_vals['x_vals'], p_vals['y_vals'], color="b")
+    # for p_vals in i_p_vals_alt:
+    #     # ax1.plot( p_vals['x_vals'], p_vals['y_vals'])
+    #     ax1.plot(p_vals['x_vals'], p_vals['y_vals'], color="b")
+    #
+    # for p_vals in i_p_vals_from_other_working_branch:
+    #     ax1.plot(p_vals['x_vals'], p_vals['y_vals'], color="r")
+    #
+    # # ax1.set_yscale("log")
 
-    # ax1.set_yscale("log")
-
-    # t_wien.plot( ax=ax2 )
-    # t_wien.plot( ax=ax2, color="r" )
+    # t_wien.plot( ax=ax1, color="g" )
+    t_wien.plot( ax=ax2, color="r" )
 
     plt.show()
 
