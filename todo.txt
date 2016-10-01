@@ -6,6 +6,7 @@ hat die klimadaten als csv
 
 
 tasks:
+- handle messages, whose start mail is not in archive?
 
 - identify flamewars & [DRAMA] threads
 

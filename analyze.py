@@ -11,6 +11,7 @@ import matplotlib
 
 import zamg
 import mailbox_tools
+import datetime_tools
 
 
 config = None
@@ -52,6 +53,14 @@ def load_json( filename ):
     return json_data
 
 
+
+def convert_and_check_time( mbox ):
+    for k, v in mbox.items():
+        d_str = v["Date"]
+        if d_str == None:
+            continue
+
+        dt = dateutil.parser.parse(d_str)
 
 
 def find_date_formats(mbox):
@@ -242,12 +251,11 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read('config.cfg')
 
-    # mbox = mailbox.mbox(config['MAILMAN']['merged_mbox'])
-    mbox = mailbox.mbox( "./mailman_archives/2006-May.txt" )
-    # mbox = mailbox.mbox( "./mailman_archives/test.txt" )
-    mailbox_tools.fix_mbox(mbox)
-    mailbox_tools.sort_mbox(mbox)
-    # #find_date_formats(mbox)
+    intern_alt = mailbox_tools.Mailbox( "./mailman_archives/2006-May.txt" )
+    # intern_alt = mailbox_tools.Mailbox( "./mailman_archives/2015_merged.txt" )
+    # intern_alt = mailbox_tools.Mailbox( config['MAILMAN']['merged_mbox'] )
+
+    # find_date_formats(mbox)
 
     #mpd = get_mails_per_interval(mbox, key_pattern)
     # save_pretty_json(mpd, "mpd.json")
@@ -256,34 +264,46 @@ if __name__ == "__main__":
     zamg_list = zamg.transpose_files(config['ZAMG']['local_storage'], config['ZAMG']['filename_pattern'])
     zamg_dfs = zamg.open_files(zamg_list)
 
+    zamg_df = zamg.concat_dfs(zamg_dfs)
+
+
     # filtered_dfs = zamg.get_dfs_where_T_gt_val(zamg_dfs, 25.0)
     column_descriptor = ('Wien Hohe Warte','48,2486','16,3564','198.0','Anhöhe','Ebene','Lufttemperatur','Lufttemperatur um 14 MEZ (°C)')
     filtered_dfs = zamg.get_dfs_where_val_gt(zamg_dfs, column_descriptor, 25.0)
 
+    intern_alt.build_threads_alt()
+    # intern_alt.build_threads()
 
-#    plot_by_all(mpd)
-#     plot_by_interval(mpd, zamg_dfs)
+    #mask = (df['date'] > start_date) & (df['date'] <= end_date)
+    t_wien = zamg_df.loc[ ( zamg_df.index > intern_alt.start) & ( zamg_df.index < intern_alt.end )  ]
+    t_wien = t_wien.loc[:,column_descriptor]
 
-#     p_vals = get_pvals_for_mpds_by_dfs(mpd, filtered_dfs)
-#     plot_pvals_filtered_dfs(p_vals, filtered_dfs, ["2014","2015"])
 
-    # visulaize mailing list
-    intern = mailbox_tools.Mailbox(mbox)
-    intern.build_threads()
+    i_p_vals_alt = intern_alt.get_plot_values("%Y-%m-%d-%H")
+    save_pretty_json(i_p_vals_alt, 'i_p_vals_alt_BRANCH_FIX.json')
 
-    # zamg_df = zamg.concat_dfs(zamg_dfs)
-    t_wien = zamg_dfs['2006'].loc[:, column_descriptor]
-    # t_wien = t_wien.loc[(t_wien.index >= intern.started) & (t_wien.index <= intern.end)]
 
-    i_p_vals = intern.get_plot_values("%Y-%m-%d-%H")
-    save_pretty_json(i_p_vals, 'i_p_vals_BRANCH_ZAMG_INVESTIGATION.json')
+    i_p_vals_from_other_working_branch = load_json("i_p_vals_BRANCH_ZAMG_INVESTIGATION.json")
+    for pv_entry in i_p_vals_from_other_working_branch:
+        pv_entry["x_vals"] = [ datetime_tools.get_utc_datetime_from_isoformat(x) for x in pv_entry["x_vals"] ]
+
+
     plt.clf()
     fig, ax1 = plt.subplots()
-    for p_vals in i_p_vals:
-        ax1.plot( p_vals['x_vals'], p_vals['y_vals'] )
-
     ax2 = ax1.twinx()
-    t_wien.plot(ax=ax2)
+
+    for p_vals in i_p_vals_alt:
+        # ax1.plot( p_vals['x_vals'], p_vals['y_vals'])
+        ax1.plot(p_vals['x_vals'], p_vals['y_vals'], color="b")
+
+    for p_vals in i_p_vals_from_other_working_branch:
+        ax1.plot(p_vals['x_vals'], p_vals['y_vals'], color="r")
+
+    # ax1.set_yscale("log")
+
+    # t_wien.plot( ax=ax1, color="g" )
+    # t_wien.plot( ax=ax2, color="r" )
+
 
     plt.show()
 
