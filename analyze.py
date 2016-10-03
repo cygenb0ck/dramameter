@@ -280,13 +280,6 @@ if __name__ == "__main__":
 
 
     i_p_vals_alt = intern_alt.get_plot_values("%Y-%m-%d-%H")
-    save_pretty_json(i_p_vals_alt, 'i_p_vals_alt_BRANCH_FIX.json')
-
-
-    i_p_vals_from_other_working_branch = load_json("i_p_vals_BRANCH_ZAMG_INVESTIGATION.json")
-    for pv_entry in i_p_vals_from_other_working_branch:
-        pv_entry["x_vals"] = [ datetime_tools.get_utc_datetime_from_isoformat(x) for x in pv_entry["x_vals"] ]
-
 
     plt.clf()
     fig, ax1 = plt.subplots()
@@ -296,13 +289,11 @@ if __name__ == "__main__":
         # ax1.plot( p_vals['x_vals'], p_vals['y_vals'])
         ax1.plot(p_vals['x_vals'], p_vals['y_vals'], color="b")
 
-    for p_vals in i_p_vals_from_other_working_branch:
-        ax1.plot(p_vals['x_vals'], p_vals['y_vals'], color="r")
-
     # ax1.set_yscale("log")
 
-    # t_wien.plot( ax=ax1, color="g" )
-    # t_wien.plot( ax=ax2, color="r" )
+    # x_compat=True is needed to avoid the pandas-plot issue
+    # see https://github.com/pydata/pandas/issues/14322
+    t_wien.plot( ax=ax2, x_compat=True, color="r" )
 
 
     plt.show()
