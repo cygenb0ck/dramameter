@@ -251,9 +251,9 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read('config.cfg')
 
-    intern_alt = mailbox_tools.Mailbox( "./mailman_archives/2006-May.txt" )
-    # intern_alt = mailbox_tools.Mailbox( "./mailman_archives/2015_merged.txt" )
-    # intern_alt = mailbox_tools.Mailbox( config['MAILMAN']['merged_mbox'] )
+    intern = mailbox_tools.Mailbox("./mailman_archives/2006-May.txt")
+    # intern = mailbox_tools.Mailbox( "./mailman_archives/2015_merged.txt" )
+    # intern = mailbox_tools.Mailbox( config['MAILMAN']['merged_mbox'] )
 
     # find_date_formats(mbox)
 
@@ -271,15 +271,14 @@ if __name__ == "__main__":
     column_descriptor = ('Wien Hohe Warte','48,2486','16,3564','198.0','Anhöhe','Ebene','Lufttemperatur','Lufttemperatur um 14 MEZ (°C)')
     filtered_dfs = zamg.get_dfs_where_val_gt(zamg_dfs, column_descriptor, 25.0)
 
-    intern_alt.build_threads_alt()
-    # intern_alt.build_threads()
+    intern.build_threads()
 
     #mask = (df['date'] > start_date) & (df['date'] <= end_date)
-    t_wien = zamg_df.loc[ ( zamg_df.index > intern_alt.start) & ( zamg_df.index < intern_alt.end )  ]
+    t_wien = zamg_df.loc[(zamg_df.index > intern.start) & (zamg_df.index < intern.end)]
     t_wien = t_wien.loc[:,column_descriptor]
 
 
-    i_p_vals_alt = intern_alt.get_plot_values("%Y-%m-%d-%H")
+    i_p_vals = intern.get_plot_values("%Y-%m-%d-%H")
 
     # plt.clf()
     fig, ax1 = plt.subplots()
@@ -287,7 +286,7 @@ if __name__ == "__main__":
 
     ax1.set_ylabel("Threads")
 
-    for p_vals in i_p_vals_alt:
+    for p_vals in i_p_vals:
         # ax1.plot( p_vals['x_vals'], p_vals['y_vals'])
         ax1.plot(p_vals['x_vals'], p_vals['y_vals'], color="b")
 

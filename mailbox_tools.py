@@ -132,18 +132,17 @@ class Mailbox():
             raise IOError("file not found: ", mbox_file)
 
         self._mbox = mailbox.mbox( mbox_file )
+        self.threads_per_day = {}
+        self.start = None
+        self.end = None
+        # assume unsorted mailbox
+        self.sorted = False
 
         if fix:
             self._fix_mbox()
         if sort:
             self._sort()
 
-        self.threads_per_day = {}
-        # self._start_indices = []
-        # self._reply_indices = []
-        # self._reversed_thread_indices = []
-        self.start = None
-        self.end = None
 
     def _fix_mbox(self):
         for k, v in self._mbox.items():
@@ -152,13 +151,15 @@ class Mailbox():
                 print("found a mail without date - removing from mailbox ...")
                 self._mbox.remove(k)
         self._mbox.flush()
+        self.sorted = True
+
 
     def _sort_mbox(self):
         sorted_emails = sorted(self._mbox, key=_extract_date)
         self._mbox.update(enumerate(sorted_emails))
         self._mbox.flush()
 
-    def build_threads_alt(self):
+    def build_threads(self):
         mails = {}
         print("creating {0} mails".format(len(self._mbox.keys())))
         for k, v in self._mbox.items():
