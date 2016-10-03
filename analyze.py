@@ -281,15 +281,20 @@ if __name__ == "__main__":
 
     i_p_vals_alt = intern_alt.get_plot_values("%Y-%m-%d-%H")
 
-    plt.clf()
+    # plt.clf()
     fig, ax1 = plt.subplots()
     ax2 = ax1.twinx()
+
+    ax1.set_ylabel("Threads")
 
     for p_vals in i_p_vals_alt:
         # ax1.plot( p_vals['x_vals'], p_vals['y_vals'])
         ax1.plot(p_vals['x_vals'], p_vals['y_vals'], color="b")
 
-    # ax1.set_yscale("log")
+    # ax2.set_ylabel("Temperature [°C]")
+    ax2.set_ylabel(column_descriptor[-1])
+    ax2.set_ylim([-30, 60])
+
 
     # x_compat=True is needed to avoid the pandas-plot issue
     # see https://github.com/pydata/pandas/issues/14322
