@@ -139,9 +139,9 @@ class Mailbox():
             self._sort()
 
         self.threads_per_day = {}
-        self._start_indices = []
-        self._reply_indices = []
-        self._reversed_thread_indices = []
+        # self._start_indices = []
+        # self._reply_indices = []
+        # self._reversed_thread_indices = []
         self.start = None
         self.end = None
 
@@ -157,93 +157,6 @@ class Mailbox():
         sorted_emails = sorted(self._mbox, key=_extract_date)
         self._mbox.update(enumerate(sorted_emails))
         self._mbox.flush()
-
-    def _build_start_indices(self):
-        for k, v in self._mbox.items():
-            if v["In-Reply-To"] is None:
-                self._start_indices.append(k)
-            else:
-                self._reply_indices.append(k)
-        print("start indices: ", len(self._start_indices))
-        print("reply indices: ", len(self._reply_indices))
-
-    def _check_bounds_reversed_indices(self, dt):
-        # start = datetime_tools.get_utc_datetime_from_unaware_str( self._reversed_thread_indices[0] )
-        end = datetime_tools.get_utc_datetime_from_unaware_str(self._reversed_thread_indices[-1])
-
-        # if start >= dt >= end:
-        if dt >= end:
-            return True
-        return False
-
-    def _get_start_index(self, dt):
-        key = datetime.datetime.strftime(dt, "%Y%m%d")
-
-        while True:
-            try:
-                return True, self._reversed_thread_indices.index(key)
-            except ValueError:
-                delta_24h = datetime.timedelta(hours=24)
-                dt = dt - delta_24h
-                if not self._check_bounds_reversed_indices(dt):
-                    return False, None
-                key = datetime.datetime.strftime(dt, "%Y%m%d")
-
-    def build_threads(self):
-        self._build_start_indices()
-        for s_i in self._start_indices:
-            root = MailThread(EMail(self._mbox[s_i]))
-            key = datetime.datetime.strftime(root.root.get_utc_datetime(), "%Y%m%d")
-            self.threads_per_day.setdefault(key, list()).append(root)
-
-        # _reversed_thread_indices
-        # first entry: newest threads
-        # last entry : oldest threads
-        self._reversed_thread_indices = list(reversed(sorted(self.threads_per_day.keys())))
-
-        alternative_start = []
-
-        for r_i in self._reply_indices:
-            print(r_i)
-            reply = EMail(self._mbox[r_i])
-
-            if not self._check_bounds_reversed_indices(reply.get_utc_datetime()):
-                print("message {} belongs to older thread".format(reply.get_message_id()))
-                alternative_start.append(reply)
-                continue
-
-            in_bounds, start = self._get_start_index(reply.get_utc_datetime())
-            if not in_bounds:
-                # print("already out of bounds")
-                continue
-
-            found = False
-            for rev_key in self._reversed_thread_indices[start:]:
-                t = self.threads_per_day[rev_key]
-                for t in self.threads_per_day[rev_key]:
-                    if t.contains_message_id(reply.get_in_reply_to()):
-                        found = t.add_child(reply)
-                        break;
-                if found:
-                    break
-            if not found:
-                alternative_start.append(reply)
-                print("message {} belongs to older thread".format(reply.get_message_id()))
-
-        print("mbox size: ",len(self._mbox.keys()))
-        print("alt_star:  ", len(alternative_start))
-
-        start_threads = self.threads_per_day[ list(sorted(self.threads_per_day.keys()))[0] ]
-        for thread in start_threads:
-            if self.start == None or thread.start < self.start:
-                self.start = thread.start
-        for k,tpd in self.threads_per_day.items():
-            for t in tpd:
-                if self.end == None or t.end > self.end:
-                    self.end = t.end
-
-        print("threads started on ", self.start.isoformat())
-        print("threads ended on   ", self.end.isoformat())
 
     def build_threads_alt(self):
         mails = {}
