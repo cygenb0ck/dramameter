@@ -4,6 +4,7 @@ import dateutil.parser
 import datetime
 import itertools
 import pathlib
+import sys
 
 import datetime_tools
 
@@ -246,15 +247,18 @@ class Mailbox():
 
     def build_threads_alt(self):
         mails = {}
-        print("creating mails")
+        print("creating {0} mails".format(len(self._mbox.keys())))
         for k, v in self._mbox.items():
+            sys.stdout.write(".")
             mail = EMail(v)
             mails[mail.get_message_id()] = mail
 
-        print("building threads")
+        sys.stdout.flush()
+
+        print("\nbuilding threads")
         i = 0
         for mail in mails.values():
-            print(i)
+            sys.stdout.write(".")
             i += 1
             if mail._tb_v == True:
                 continue
@@ -269,6 +273,8 @@ class Mailbox():
                 key = datetime.datetime.strftime(mail.get_utc_datetime(), "%Y%m%d")
                 self.threads_per_day.setdefault(key, list()).append(thread)
             mail._tb_v = True
+
+        sys.stdout.flush()
 
         # finalize all threads:
         for k, tpd in self.threads_per_day.items():
@@ -288,12 +294,15 @@ class Mailbox():
             if self.end == None or thread.end > self.end:
                 self.end = thread.end
 
-        print("threads started on ", self.start.isoformat())
+        print("\nthreads started on ", self.start.isoformat())
         print("threads ended on   ", self.end.isoformat())
 
     def get_plot_values(self, interval_pattern):
+        print("preparing plot values")
         p_vals = []
         for day_key, threads in self.threads_per_day.items():
+            sys.stdout.write(".")
             for t in threads:
                 p_vals.append(t.get_plot_values(interval_pattern))
+        sys.stdout.flush()
         return p_vals
