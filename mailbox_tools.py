@@ -13,6 +13,30 @@ def _extract_date(email):
     date = email.get('Date')
     return parsedate(date)
 
+def slope( graph ):
+    if len(graph['x_vals']) != len(graph['y_vals']):
+        raise  RuntimeError("graph: len(x_vals) != len(y_vals)!")
+
+    l = len(graph["x_vals"])
+
+    slope_graph = {}
+
+    for i in range( 0, l - 1 ):
+        x0 = graph["x_vals"][i]
+        x1 = graph["x_vals"][i+1]
+        x = datetime_tools.get_utc_datetime_average(x0, x1)
+        slope_graph.setdefault("x_vals", list()).append(x)
+
+        y0 = graph["y_vals"][i]
+        y1 = graph["y_vals"][i+1]
+
+        dx = ( x1.timestamp() - x0.timestamp() ) / 3600.0
+        y = ( y1 - y0 ) / dx
+        slope_graph.setdefault("y_vals", list()).append(y)
+
+    return slope_graph
+
+
 
 
 class EMail():
@@ -30,7 +54,7 @@ class EMail():
         self.children.append(message)
 
     def get_utc_datetime(self):
-        return datetime_tools.get_utc_datetime_from_string(self.mbox_message["Date"])
+        return datetime_tools.get_utc_datetime_from_string_with_timezone(self.mbox_message["Date"])
 
     def get_message_id(self):
         return self.mbox_message["message-id"]
@@ -83,6 +107,7 @@ class MailThread():
         self.start = root.get_utc_datetime()
         # datetime of the last mail
         self.end = root.get_utc_datetime()
+        self.p_vals = {}
 
     def finalize(self):
         self.end = self.root.get_end_datetime_r(self.start)
@@ -117,12 +142,15 @@ class MailThread():
                 accum_counts[k] = accum_counts[prev_key] + v
             prev_key = k
 
-        p_vals = {}
+        self.p_vals = {}
         for ik, count in sorted(accum_counts.items()):
-            p_vals.setdefault('x_vals', []).append(datetime.datetime.strptime(ik, interval_pattern))
-            p_vals.setdefault('y_vals', []).append(count)
+            # strptime swallows timezone!!
+            # self.p_vals.setdefault('x_vals', []).append(datetime.datetime.strptime(ik, interval_pattern))
+            self.p_vals.setdefault('x_vals', []).append(dateutil.parser.parse(ik))
+            self.p_vals.setdefault('y_vals', []).append(count)
 
-        return p_vals
+        return self.p_vals
+
 
 
 class Mailbox():
@@ -137,11 +165,22 @@ class Mailbox():
         self.end = None
         # assume unsorted mailbox
         self.sorted = False
+        self.p_vals = []
 
         if fix:
             self._fix_mbox()
         if sort:
-            self._sort()
+            self._sort_mbox()
+
+        self.mails = {}
+        print("creating {0} mails".format(len(self._mbox.keys())))
+        for k, v in self._mbox.items():
+            sys.stdout.write(".")
+            mail = EMail(v)
+            self.mails[mail.get_message_id()] = mail
+
+        sys.stdout.flush()
+
 
 
     def _fix_mbox(self):
@@ -160,26 +199,17 @@ class Mailbox():
         self._mbox.flush()
 
     def build_threads(self):
-        mails = {}
-        print("creating {0} mails".format(len(self._mbox.keys())))
-        for k, v in self._mbox.items():
-            sys.stdout.write(".")
-            mail = EMail(v)
-            mails[mail.get_message_id()] = mail
-
-        sys.stdout.flush()
-
         print("\nbuilding threads")
         i = 0
-        for mail in mails.values():
+        for mail in self.mails.values():
             sys.stdout.write(".")
             i += 1
             if mail._tb_v == True:
                 continue
 
             parent_id = mail.get_in_reply_to()
-            if parent_id in mails.keys():
-                parent = mails[parent_id]
+            if parent_id in self.mails.keys():
+                parent = self.mails[parent_id]
                 parent.add_child(mail)
                 mail.set_parent(parent)
             else:
@@ -213,10 +243,22 @@ class Mailbox():
 
     def get_plot_values(self, interval_pattern):
         print("preparing plot values")
-        p_vals = []
+        self.p_vals = []
         for day_key, threads in self.threads_per_day.items():
             sys.stdout.write(".")
             for t in threads:
-                p_vals.append(t.get_plot_values(interval_pattern))
+                self.p_vals.append(t.get_plot_values(interval_pattern))
         sys.stdout.flush()
-        return p_vals
+        return self.p_vals
+
+    def thread_slopes(self):
+        self.s_vals = []
+        for pv in self.p_vals:
+            if len(pv['x_vals'])<2:
+                continue
+            s = slope(pv)
+            self.s_vals.append( s )
+
+        return self.s_vals
+
+
