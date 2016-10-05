@@ -278,7 +278,9 @@ if __name__ == "__main__":
     t_wien = t_wien.loc[:,column_descriptor]
 
 
-    i_p_vals = intern.get_plot_values("%Y-%m-%d-%H")
+    # pattern "%Y-%m-%d-%H" leads to hour-resolution
+    i_p_vals = intern.get_plot_values("%Y-%m-%d-%H %Z")
+    s_vals = intern.thread_slopes()
 
     # plt.clf()
     fig, ax1 = plt.subplots()
@@ -289,6 +291,8 @@ if __name__ == "__main__":
     for p_vals in i_p_vals:
         # ax1.plot( p_vals['x_vals'], p_vals['y_vals'])
         ax1.plot(p_vals['x_vals'], p_vals['y_vals'], color="b")
+    for s in s_vals:
+        ax1.plot( s['x_vals'], s['y_vals'], color='g', marker="x" )
 
     # ax2.set_ylabel("Temperature [°C]")
     ax2.set_ylabel(column_descriptor[-1])
