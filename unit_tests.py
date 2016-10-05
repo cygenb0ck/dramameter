@@ -55,6 +55,7 @@ class TestMailBoxTools(unittest.TestCase):
 
     def test_get_threads_by_count(self):
         tbc1 = self.mailbox.get_threads_by_count()
+
         for count, threads in tbc1.items():
             for t in threads:
                 self.assertEqual(t.mailcount, count)
@@ -102,6 +103,22 @@ class TestMailBoxTools(unittest.TestCase):
             for t in threads:
                 self.assertGreaterEqual(t.duration, d1)
                 self.assertLessEqual(t.duration, d2)
+
+    def test_get_threads_active_within_daterange(self):
+        s1 = "2006-05-20 12:34 UTC"
+        d1 = dateutil.parser.parse(s1)
+
+        s2 = "2006-05-23 23:42 UTC"
+        d2 = dateutil.parser.parse(s2)
+        twr5 = self.mailbox.get_threads_active_within_range(start=s1, end=s2)
+        for t in twr5:
+            self.assertGreaterEqual(t.end, d1)
+            self.assertLessEqual(t.start, d2)
+        twr6 = self.mailbox.get_threads_active_within_range(start=d1, end=d2)
+        for t in twr6:
+            self.assertGreaterEqual(t.end, d1)
+            self.assertLessEqual(t.start, d2)
+        self.assertListEqual(twr5, twr6)
 
 
 class TestSlope(unittest.TestCase):

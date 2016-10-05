@@ -293,8 +293,23 @@ class Mailbox():
             for t in threads:
                 if( min is None or t.duration >= min ) and ( max is None or t.duration <= max ):
                     tbd.setdefault(t.duration, list()).append(t)
-
         return tbd
 
+    def get_threads_active_within_range(self, start, end):
+        if type(start) is str:
+            s = dateutil.parser.parse(start)
+        else:
+            s = start
+        if type(end) is str:
+            e = dateutil.parser.parse(end)
+        else:
+            e = end
 
+        twr = []
+
+        for threads in self.threads_per_day.values():
+            for t in threads:
+                if t.end > s and t.start < e:
+                    twr.append(t)
+        return twr
 
