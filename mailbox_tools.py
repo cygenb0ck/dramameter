@@ -181,7 +181,8 @@ class Mailbox():
 
         sys.stdout.flush()
 
-
+    def __del__(self):
+        self._mbox.close()
 
     def _fix_mbox(self):
         for k, v in self._mbox.items():
@@ -191,7 +192,6 @@ class Mailbox():
                 self._mbox.remove(k)
         self._mbox.flush()
         self.sorted = True
-
 
     def _sort_mbox(self):
         sorted_emails = sorted(self._mbox, key=_extract_date)
