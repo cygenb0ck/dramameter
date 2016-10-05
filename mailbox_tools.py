@@ -117,6 +117,7 @@ class MailThread():
 
     def finalize(self):
         self.end = self.root.get_end_datetime_r(self.start)
+        self.duration = self.end - self.start
         self.root.register_members(self.members)
         self.mailcount = len(self.members)
 
@@ -285,5 +286,15 @@ class Mailbox():
                 if (min is None or t.mailcount >= min) and (max is None or t.mailcount <= max):
                     tbc.setdefault(t.mailcount, list()).append(t)
         return tbc
+
+    def get_threads_by_duration(self, min = None, max = None):
+        tbd = {}
+        for threads in self.threads_per_day.values():
+            for t in threads:
+                if( min is None or t.duration >= min ) and ( max is None or t.duration <= max ):
+                    tbd.setdefault(t.duration, list()).append(t)
+
+        return tbd
+
 
 

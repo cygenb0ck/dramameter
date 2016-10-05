@@ -54,7 +54,6 @@ class TestMailBoxTools(unittest.TestCase):
                 self.assertGreater(t.mailcount, 0)
 
     def test_get_threads_by_count(self):
-        # by count
         tbc1 = self.mailbox.get_threads_by_count()
         for count, threads in tbc1.items():
             for t in threads:
@@ -75,6 +74,34 @@ class TestMailBoxTools(unittest.TestCase):
             for t in threads:
                 self.assertLessEqual(t.mailcount, 10)
                 self.assertGreaterEqual(t.mailcount, 5)
+
+    def test_get_threads_by_duration(self):
+        tbd1 = self.mailbox.get_threads_by_duration()
+        for duration, threads in tbd1.items():
+            for t in threads:
+                self.assertEqual(t.duration, duration)
+
+        d1 = datetime.timedelta(days = 2)
+        tb2 = self.mailbox.get_threads_by_duration(d1)
+        for duration, threads in tb2.items():
+            self.assertGreaterEqual(duration, d1)
+            for t in threads:
+                self.assertGreaterEqual(t.duration, d1)
+
+        d2 = datetime.timedelta(days=3)
+        tb3 = self.mailbox.get_threads_by_duration(max = d2)
+        for duration, threads in tb3.items():
+            self.assertLessEqual(duration, d2)
+            for t in threads:
+                self.assertLessEqual(t.duration, d2)
+
+        tb4 = self.mailbox.get_threads_by_duration(min=d1, max=d2)
+        for duration, threads in tb4.items():
+            self.assertGreaterEqual(duration, d1)
+            self.assertLessEqual(duration, d2)
+            for t in threads:
+                self.assertGreaterEqual(t.duration, d1)
+                self.assertLessEqual(t.duration, d2)
 
 
 class TestSlope(unittest.TestCase):
