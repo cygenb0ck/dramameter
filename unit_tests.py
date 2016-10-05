@@ -33,7 +33,8 @@ class TestDateTimeTools(unittest.TestCase):
 
 
 class TestMailBoxTools(unittest.TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpClass(self):
         self.mailbox = mailbox_tools.Mailbox("./mailman_archives/2006-May.txt", True, True)
 
     def test_mail_dates_utc(self):
@@ -49,10 +50,31 @@ class TestMailBoxTools(unittest.TestCase):
     def test_members(self):
         for threads in self.mailbox.threads_per_day.values():
             for t in threads:
-                self.assertGreater(t.mailcount, 0)
                 self._are_children_in_members_r(t.members, t.root)
+                self.assertGreater(t.mailcount, 0)
 
-        # for t
+    def test_get_threads_by_count(self):
+        # by count
+        tbc1 = self.mailbox.get_threads_by_count()
+        for count, threads in tbc1.items():
+            for t in threads:
+                self.assertEqual(t.mailcount, count)
+
+        tbc2 = self.mailbox.get_threads_by_count(10)
+        for count, threads in tbc2.items():
+            for t in threads:
+                self.assertGreaterEqual(t.mailcount, 10)
+
+        tbc3 = self.mailbox.get_threads_by_count(max=10)
+        for count, threads in tbc3.items():
+            for t in threads:
+                self.assertLessEqual(t.mailcount, 10)
+
+        tbc4 = self.mailbox.get_threads_by_count(min = 5, max=10)
+        for count, threads in tbc4.items():
+            for t in threads:
+                self.assertLessEqual(t.mailcount, 10)
+                self.assertGreaterEqual(t.mailcount, 5)
 
 
 class TestSlope(unittest.TestCase):

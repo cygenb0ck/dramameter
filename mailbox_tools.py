@@ -66,6 +66,7 @@ class EMail():
         return self.mbox_message["Subject"]
 
     def add_member(self, email):
+        raise RuntimeError("im still used ...")
         if self.get_message_id() == email.get_in_reply_to():
             self.add_child(email)
             email.set_parent(self)
@@ -93,6 +94,11 @@ class EMail():
                 t_end = t
         return t_end
 
+    def register_members(self, members):
+        members.append(self.get_message_id())
+        for c in self.children:
+            c.register_members(members)
+
 
 
 
@@ -101,8 +107,8 @@ class MailThread():
         # the starting message
         self.root = root
         # list holding the massage_ids of the participating mails
-        self._members = []
-        self._members.append(self.root.get_message_id())
+        self.members = []
+        self.members.append(self.root.get_message_id())
         # start datetime of thread
         self.start = root.get_utc_datetime()
         # datetime of the last mail
@@ -111,16 +117,18 @@ class MailThread():
 
     def finalize(self):
         self.end = self.root.get_end_datetime_r(self.start)
+        self.root.register_members(self.members)
+        self.mailcount = len(self.members)
 
     def contains_message_id(self, message_id):
-        if message_id in self._members:
+        if message_id in self.members:
             return True
         return False
 
     def add_child(self, email):
         added = self.root.add_member(email)
         if added:
-            self._members.append(email.get_message_id())
+            self.members.append(email.get_message_id())
             end_dt = email.get_utc_datetime()
             if end_dt > self.end:
                 self.end = end_dt
@@ -271,6 +279,11 @@ class Mailbox():
         return self.s_vals
 
     def get_threads_by_count(self, min = None, max = None):
-        pass
+        tbc = {}
+        for threads in self.threads_per_day.values():
+            for t in threads:
+                if (min is None or t.mailcount >= min) and (max is None or t.mailcount <= max):
+                    tbc.setdefault(t.mailcount, list()).append(t)
+        return tbc
 
 
