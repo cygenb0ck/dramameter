@@ -271,8 +271,6 @@ if __name__ == "__main__":
     column_descriptor = ('Wien Hohe Warte','48,2486','16,3564','198.0','Anhöhe','Ebene','Lufttemperatur','Lufttemperatur um 14 MEZ (°C)')
     filtered_dfs = zamg.get_dfs_where_val_gt(zamg_dfs, column_descriptor, 25.0)
 
-    intern.build_threads()
-
     #mask = (df['date'] > start_date) & (df['date'] <= end_date)
     t_wien = zamg_df.loc[(zamg_df.index > intern.start) & (zamg_df.index < intern.end)]
     t_wien = t_wien.loc[:,column_descriptor]

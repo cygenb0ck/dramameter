@@ -160,6 +160,7 @@ class Mailbox():
             raise IOError("file not found: ", mbox_file)
 
         self._mbox = mailbox.mbox( mbox_file )
+        self._built_threads = False
         self.threads_per_day = {}
         self.start = None
         self.end = None
@@ -181,6 +182,8 @@ class Mailbox():
 
         sys.stdout.flush()
 
+        self.build_threads()
+
     def __del__(self):
         self._mbox.close()
 
@@ -199,6 +202,10 @@ class Mailbox():
         self._mbox.flush()
 
     def build_threads(self):
+        if self._built_threads is True:
+            print("threads were already built!")
+            return
+
         print("\nbuilding threads")
         i = 0
         for mail in self.mails.values():
@@ -232,6 +239,7 @@ class Mailbox():
             if self.start == None or thread.start < self.start:
                 self.start = thread.start
 
+        # FIXME: last thread not automatically contain last mail!
         # find end date for mailbox
         end_threads = self.threads_per_day[ list(sorted(self.threads_per_day.keys()))[-1] ]
         for thread in end_threads:
@@ -240,6 +248,7 @@ class Mailbox():
 
         print("\nthreads started on ", self.start.isoformat())
         print("threads ended on   ", self.end.isoformat())
+        self._built_threads = True
 
     def get_plot_values(self, interval_pattern):
         print("preparing plot values")
@@ -260,5 +269,8 @@ class Mailbox():
             self.s_vals.append( s )
 
         return self.s_vals
+
+    def get_threads_by_count(self, min = None, max = None):
+        pass
 
 
