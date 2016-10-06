@@ -22,7 +22,6 @@ class TestDateTimeTools(unittest.TestCase):
         d2_str = datetime.datetime.strftime( d2, "%Y-%m-%d %H:%M %Z" )
         self.assertEqual(d2_str, "2006-05-22 10:00 UTC")
 
-
     def test_average(self):
         s1 = "2006-05-22 10:00 CET"
         s2 = "2006-05-22 12:00 CET"
@@ -42,6 +41,13 @@ class TestMailBoxTools(unittest.TestCase):
             tz = datetime.datetime.strftime( m.get_utc_datetime(), "%Z" )
             self.assertEqual( tz, "UTC" )
 
+    # test that no thread has a replyed-to mail in the mailbox
+    def test_threads(self):
+        for threads in self.mailbox.threads_per_day.values():
+            for t in threads:
+                self.assertNotIn( t.root.get_in_reply_to(), self.mailbox.mails.keys() )
+
+
     def _are_children_in_members_r(self, members, mail):
         self.assertIn( mail.get_message_id(), members )
         for c in mail.children:
@@ -52,6 +58,20 @@ class TestMailBoxTools(unittest.TestCase):
             for t in threads:
                 self._are_children_in_members_r(t.members, t.root)
                 self.assertGreater(t.mailcount, 0)
+
+    def test_thread_data(self):
+        for threads in self.mailbox.threads_per_day.values():
+            for t in threads:
+                thread_subject = t.root.get_subject()
+                duration = t.end - t.start
+                self.assertEqual(t.duration, duration,thread_subject)
+                if len(t.members) > 1:
+                    self.assertNotEqual(t.start, t.end, thread_subject)
+                    self.assertGreater(t.duration, datetime.timedelta(hours=0), thread_subject)
+                else:
+                    self.assertEqual(t.start, t.end, thread_subject)
+                    self.assertEqual(t.duration, datetime.timedelta(hours=0), thread_subject)
+
 
     def test_get_threads_by_count(self):
         tbc1 = self.mailbox.get_threads_by_count()
@@ -84,6 +104,7 @@ class TestMailBoxTools(unittest.TestCase):
 
         d1 = datetime.timedelta(days = 2)
         tb2 = self.mailbox.get_threads_by_duration(d1)
+        self.assertGreater(len(tb2.values()), 0)
         for duration, threads in tb2.items():
             self.assertGreaterEqual(duration, d1)
             for t in threads:
@@ -156,8 +177,6 @@ class TestSlope(unittest.TestCase):
             self.assertGreater( x0, rx0)
         for y in s_data["y_vals"]:
             self.assertEqual( y, 1 )
-
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -87,15 +87,14 @@ class EMail():
         return interval_key_list
 
     def get_end_datetime_r(self, end_dt):
-        t_end = end_dt
+        if self.get_utc_datetime() > end_dt:
+            end_dt = self.get_utc_datetime()
         for c in self.children:
-            t = c.get_end_datetime_r(t_end)
-            if t > t_end:
-                t_end = t
-        return t_end
+            end_dt = c.get_end_datetime_r(end_dt)
+        return end_dt
 
     def register_members(self, members):
-        members.append(self.get_message_id())
+        members.add(self.get_message_id())
         for c in self.children:
             c.register_members(members)
 
@@ -107,8 +106,8 @@ class MailThread():
         # the starting message
         self.root = root
         # list holding the massage_ids of the participating mails
-        self.members = []
-        self.members.append(self.root.get_message_id())
+        self.members = set()
+        self.members.add(self.root.get_message_id())
         # start datetime of thread
         self.start = root.get_utc_datetime()
         # datetime of the last mail
@@ -235,6 +234,7 @@ class Mailbox():
             mail._tb_v = True
 
         sys.stdout.flush()
+        print("\n")
 
         # finalize all threads:
         for k, tpd in self.threads_per_day.items():
