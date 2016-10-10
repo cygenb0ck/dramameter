@@ -93,12 +93,23 @@ class EMail():
             end_dt = c.get_end_datetime_r(end_dt)
         return end_dt
 
-    def register_members(self, members):
+    def register_members(self, members, count = 0):
         members.add(self.get_message_id())
+        self.count = count + 1
         for c in self.children:
-            c.register_members(members)
+            c.register_members(members, self.count)
 
-
+    def plot_detailed(self, ax, *args, **kwargs):
+        if len(self.children) == 0:
+            xs = [self.get_utc_datetime()]
+            ys = [self.count]
+            ax.plot(xs, ys, *args, **kwargs)
+        else:
+            for c in self.children:
+                xs = [self.get_utc_datetime(), c.get_utc_datetime()]
+                ys = [self.count, c.count]
+                ax.plot(xs, ys, *args, **kwargs)
+                c.plot_detailed(ax, *args, **kwargs)
 
 
 class MailThread():
@@ -112,13 +123,14 @@ class MailThread():
         self.start = root.get_utc_datetime()
         # datetime of the last mail
         self.end = root.get_utc_datetime()
-        self.p_vals = {}
+        self.p_vals = None
 
     def finalize(self):
         self.end = self.root.get_end_datetime_r(self.start)
         self.duration = self.end - self.start
         self.root.register_members(self.members)
         self.mailcount = len(self.members)
+
 
     def contains_message_id(self, message_id):
         if message_id in self.members:
@@ -135,7 +147,7 @@ class MailThread():
 
         return added
 
-    def get_plot_values(self, interval_pattern):
+    def get_plot_values(self, interval_pattern = "%Y-%m-%d-%H %Z"):
         interval_key_list = self.root.get_interval_keys_r(interval_pattern, [])
 
         # count the frequency of the keys in interval_key_list
@@ -158,6 +170,14 @@ class MailThread():
             self.p_vals.setdefault('y_vals', []).append(count)
 
         return self.p_vals
+
+    def plot(self, ax, *args, **kwargs):
+        if self.p_vals == None:
+            self.get_plot_values()
+        ax.plot(self.p_vals['x_vals'], self.p_vals['y_vals'], *args, **kwargs)
+
+    def plot_detailed(self, ax, *args, **kwargs):
+        self.root.plot_detailed(ax, *args, **kwargs)
 
 
 

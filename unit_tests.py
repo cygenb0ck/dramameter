@@ -48,10 +48,11 @@ class TestMailBoxTools(unittest.TestCase):
                 self.assertNotIn( t.root.get_in_reply_to(), self.mailbox.mails.keys() )
 
 
-    def _are_children_in_members_r(self, members, mail):
+    def _are_children_in_members_r(self, members, mail, count = 1):
         self.assertIn( mail.get_message_id(), members )
+        self.assertEqual(mail.count, count)
         for c in mail.children:
-            self._are_children_in_members_r(members, c)
+            self._are_children_in_members_r(members, c, count+1)
 
     def test_members(self):
         for threads in self.mailbox.threads_per_day.values():
