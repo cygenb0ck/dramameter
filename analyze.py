@@ -12,7 +12,7 @@ import matplotlib
 import zamg
 import mailbox_tools
 import datetime_tools
-
+import collections
 
 config = None
 
@@ -53,14 +53,19 @@ def load_json( filename ):
     return json_data
 
 
+def ordereddict_from_dict_sorted_by_key( d ):
+    keys = sorted(d.keys())
+    od = collections.OrderedDict()
+    for k in keys:
+        od[k] = d[k]
+    return od
 
-def convert_and_check_time( mbox ):
-    for k, v in mbox.items():
-        d_str = v["Date"]
-        if d_str == None:
-            continue
-
-        dt = dateutil.parser.parse(d_str)
+def ordereddict_from_dict_sorted_by_key_inverse( d ):
+    keys = list( reversed( sorted(d.keys()) ) )
+    od = collections.OrderedDict()
+    for k in keys:
+        od[k] = d[k]
+    return od
 
 
 def find_date_formats(mbox):
@@ -247,13 +252,43 @@ def plot_pvals_filtered_dfs(p_vals, filtered_dfs, years = None):
 
     plt.show()
 
+def plot_detailed(threads_by, zamg_df = None):
+    total_threads = 0
+    for threads in threads_by.values():
+        for t in threads:
+            total_threads += 1
+
+    fig, ax1 = plt.subplots( nrows = total_threads, sharex=False, sharey=False )
+    ax_iter = iter(ax1)
+    for threads in threads_by.values():
+        for t in threads:
+            ax = next(ax_iter)
+            title = "{0} / {1} - {2}".format(t.root.get_subject(),
+                                             datetime.datetime.strftime(t.start, "%Y-%m-%d %H:%M"),
+                                             datetime.datetime.strftime(t.end, "%Y-%m-%d %H:%M"))
+            ax.set_title(title)
+            ax.set_ylabel("mail count")
+            t.plot_detailed(ax=ax)
+            # t.plot(ax=ax)
+            if zamg_df is not None:
+                delta_24h = datetime.timedelta(hours=24)
+                df_for_thread = zamg_df.loc[(zamg_df.index > t.start-delta_24h) & (zamg_df.index < t.end+delta_24h)]
+                if len(df_for_thread.values) == 0:
+                    continue
+                ax2 = ax.twinx()
+                # df_for_thread.plot(ax=ax2, x_compat=True)
+                ax2.plot(df_for_thread.index, df_for_thread.values, linestyle="--")
+                ax2.set_ylabel("temperature at 14:00 [°C]")
+    plt.show()
+    # plt.savefig("threads.png", bbox_inches="tight")
+
 if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read('config.cfg')
 
-    intern = mailbox_tools.Mailbox("./mailman_archives/2006-May.txt")
+    # intern = mailbox_tools.Mailbox("./mailman_archives/2006-May.txt")
     # intern = mailbox_tools.Mailbox( "./mailman_archives/2015_merged.txt" )
-    # intern = mailbox_tools.Mailbox( config['MAILMAN']['merged_mbox'] )
+    intern = mailbox_tools.Mailbox( config['MAILMAN']['merged_mbox'] )
 
     # find_date_formats(mbox)
 
@@ -272,35 +307,53 @@ if __name__ == "__main__":
     filtered_dfs = zamg.get_dfs_where_val_gt(zamg_dfs, column_descriptor, 25.0)
 
     #mask = (df['date'] > start_date) & (df['date'] <= end_date)
-    t_wien = zamg_df.loc[(zamg_df.index > intern.start) & (zamg_df.index < intern.end)]
-    t_wien = t_wien.loc[:,column_descriptor]
+    # t_wien = zamg_df.loc[(zamg_df.index > intern.start) & (zamg_df.index < intern.end)]
+    # t_wien = t_wien.loc[:,column_descriptor]
+    t_wien = zamg_df.loc[:,column_descriptor]
 
 
-    # pattern "%Y-%m-%d-%H" leads to hour-resolution
-    i_p_vals = intern.get_plot_values("%Y-%m-%d-%H %Z")
-    s_vals = intern.thread_slopes()
+    # # pattern "%Y-%m-%d-%H" leads to hour-resolution
+    # i_p_vals = intern.get_plot_values("%Y-%m-%d-%H %Z")
+    # s_vals = intern.thread_slopes()
+    #
+    # # plt.clf()
+    # fig, ax1 = plt.subplots()
+    # ax2 = ax1.twinx()
+    #
+    # ax1.set_ylabel("Threads")
+    #
+    # for p_vals in i_p_vals:
+    #     # ax1.plot( p_vals['x_vals'], p_vals['y_vals'])
+    #     ax1.plot(p_vals['x_vals'], p_vals['y_vals'], color="b")
+    # for s in s_vals:
+    #     ax1.plot( s['x_vals'], s['y_vals'], color='g', marker="x" )
+    #
+    # # ax2.set_ylabel("Temperature [°C]")
+    # ax2.set_ylabel(column_descriptor[-1])
+    # ax2.set_ylim([-30, 60])
+    #
+    #
+    # # x_compat=True is needed to avoid the pandas-plot issue
+    # # see https://github.com/pydata/pandas/issues/14322
+    # t_wien.plot( ax=ax2, x_compat=True, color="r" )
+    #
+    #
+    # plt.show()
+    print("----- by count -----")
+    by_count = intern.get_threads_by_count(min=65)
+    by_count = ordereddict_from_dict_sorted_by_key_inverse(by_count)
+    for k, threads in by_count.items():
+        print(k)
+        for t in threads:
+            print("\t", t.root.get_subject())
+    print("----- by duration -----")
+    by_duration = intern.get_threads_by_duration(min=datetime.timedelta(days=50))
+    by_duration = ordereddict_from_dict_sorted_by_key_inverse(by_duration)
+    for k, threads in by_duration.items():
+        print(k)
+        for t in threads:
+            print("\t", t.duration, t.root.get_subject())
 
-    # plt.clf()
-    fig, ax1 = plt.subplots()
-    ax2 = ax1.twinx()
 
-    ax1.set_ylabel("Threads")
-
-    for p_vals in i_p_vals:
-        # ax1.plot( p_vals['x_vals'], p_vals['y_vals'])
-        ax1.plot(p_vals['x_vals'], p_vals['y_vals'], color="b")
-    for s in s_vals:
-        ax1.plot( s['x_vals'], s['y_vals'], color='g', marker="x" )
-
-    # ax2.set_ylabel("Temperature [°C]")
-    ax2.set_ylabel(column_descriptor[-1])
-    ax2.set_ylim([-30, 60])
-
-
-    # x_compat=True is needed to avoid the pandas-plot issue
-    # see https://github.com/pydata/pandas/issues/14322
-    t_wien.plot( ax=ax2, x_compat=True, color="r" )
-
-
-    plt.show()
+    plot_detailed(by_count, t_wien)
 
