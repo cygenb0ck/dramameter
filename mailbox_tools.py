@@ -333,3 +333,14 @@ class Mailbox():
                     twr.append(t)
         return twr
 
+    def get_threads_active_on_dates(self, date_list):
+        tad = []
+
+        for d in date_list:
+            for threads in self.threads_per_day.values():
+                for t in threads:
+                    if t.start <= d <= t.end:
+                        tad.append(t)
+
+        return tad
+

@@ -133,14 +133,36 @@ class TestMailBoxTools(unittest.TestCase):
         s2 = "2006-05-23 23:42 UTC"
         d2 = dateutil.parser.parse(s2)
         twr5 = self.mailbox.get_threads_active_within_range(start=s1, end=s2)
+        self.assertNotEqual(len(twr5), 0)
         for t in twr5:
             self.assertGreaterEqual(t.end, d1)
             self.assertLessEqual(t.start, d2)
         twr6 = self.mailbox.get_threads_active_within_range(start=d1, end=d2)
+        self.assertNotEqual(len(twr6), 0)
         for t in twr6:
             self.assertGreaterEqual(t.end, d1)
             self.assertLessEqual(t.start, d2)
         self.assertListEqual(twr5, twr6)
+
+
+    def test_get_threads_active_on_dates(self):
+        s1 = "2006-05-20 12:34 UTC"
+        d1 = dateutil.parser.parse(s1)
+        s2 = "2006-05-23 23:42 UTC"
+        d2 = dateutil.parser.parse(s2)
+        s3 = "2006-05-24 12:00 UTC"
+        d3 = dateutil.parser.parse(s3)
+        date_list = [d1, d2, d3]
+
+        twr7 = self.mailbox.get_threads_active_on_dates( date_list )
+        self.assertNotEqual(len(twr7), 0, "thread list is empty")
+        for t in twr7:
+            found = False
+            for d in date_list:
+                if t.start <= d <= t.end:
+                    found = True
+                    break
+            self.assertTrue(found, "thread not active on specified dates!")
 
 
 class TestSlope(unittest.TestCase):
