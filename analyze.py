@@ -301,21 +301,31 @@ def plot_detailed_only_above_temp( mailbox, zamg_dfs, temp ):
 
     print("---->", len(threads.keys()))
 
-    fig, axes = plt.subplots( nrows=len(threads.keys()), sharex=False, sharey=False )
-    ax_iter = iter(axes)
-
-    df_filtered = ordereddict_from_dict_sorted_by_key(df_filtered)
-    for k, df in df_filtered.items():
-        if k not in threads.keys():
-            continue
-        axis = next(ax_iter)
-        for t in threads[k]:
-            t.plot_detailed(ax=axis, color="g")
-        axis.set_ylim(bottom=1)
-        axis.set_ylabel("mailcount")
+    # workaround, because iterator does not work if we have only one row
+    if len(threads.keys()) == 1:
+        fig, axis = plt.subplots(nrows=1, sharex=False, sharey=False)
+        key = next( iter( threads.keys() ) )
+        for t in threads[key]:
+            t.plot(ax=axis, color="g")
         axis2 = axis.twinx()
-        axis2.set_ylabel("T [°C] at 14:00")
-        axis2.plot( df.index, df.values, linestyle="none", marker="x", color="r" )
+        df = df_filtered[key]
+        axis2.plot(df.index, df.values, linestyle="--", color="r")
+    else:
+        fig, axes = plt.subplots( nrows=len(threads.keys()), sharex=False, sharey=False )
+        ax_iter = iter(axes)
+
+        df_filtered = ordereddict_from_dict_sorted_by_key(df_filtered)
+        for k, df in df_filtered.items():
+            if k not in threads.keys():
+                continue
+            axis = next(ax_iter)
+            for t in threads[k]:
+                t.plot_detailed(ax=axis, color="g")
+            axis.set_ylim(bottom=1)
+            axis.set_ylabel("mailcount")
+            axis2 = axis.twinx()
+            axis2.set_ylabel("T [°C] at 14:00")
+            axis2.plot( df.index, df.values, linestyle="--", color="r" )
 
     plt.show()
 
@@ -325,8 +335,8 @@ if __name__ == "__main__":
     config.read('config.cfg')
 
     # intern = mailbox_tools.Mailbox("./mailman_archives/2006-May.txt")
-    # intern = mailbox_tools.Mailbox( "./mailman_archives/2015_merged.txt" )
-    intern = mailbox_tools.Mailbox( config['MAILMAN']['merged_mbox'] )
+    intern = mailbox_tools.Mailbox( "./mailman_archives/2015_merged.txt" )
+    # intern = mailbox_tools.Mailbox( config['MAILMAN']['merged_mbox'] )
 
     # find_date_formats(mbox)
 
