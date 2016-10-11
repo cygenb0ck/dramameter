@@ -13,6 +13,7 @@ import zamg
 import mailbox_tools
 import datetime_tools
 import collections
+import pandas
 
 config = None
 
@@ -276,11 +277,48 @@ def plot_detailed(threads_by, zamg_df = None):
                 if len(df_for_thread.values) == 0:
                     continue
                 ax2 = ax.twinx()
+                # # pandas plot issue
+                # # x_compat=True is needed to avoid the pandas-plot issue
+                # # see https://github.com/pydata/pandas/issues/14322
                 # df_for_thread.plot(ax=ax2, x_compat=True)
                 ax2.plot(df_for_thread.index, df_for_thread.values, linestyle="--")
                 ax2.set_ylabel("temperature at 14:00 [°C]")
     plt.show()
     # plt.savefig("threads.png", bbox_inches="tight")
+
+
+def plot_detailed_only_above_temp( mailbox, zamg_dfs, temp ):
+    column_descriptor = ('Wien Hohe Warte', '48,2486', '16,3564', '198.0', 'Anhöhe', 'Ebene', 'Lufttemperatur',
+                         'Lufttemperatur um 14 MEZ (°C)')
+    df_filtered = zamg.get_dfs_where_val_gt(zamg_dfs, column_descriptor, temp)
+
+    threads = {}
+    for k, df in df_filtered.items():
+        date_list = [x.to_pydatetime() for x in df.index]
+        t = mailbox.get_threads_active_on_dates(date_list)
+        if len(t) > 0:
+            threads[k] = t
+
+    print("---->", len(threads.keys()))
+
+    fig, axes = plt.subplots( nrows=len(threads.keys()), sharex=False, sharey=False )
+    ax_iter = iter(axes)
+
+    df_filtered = ordereddict_from_dict_sorted_by_key(df_filtered)
+    for k, df in df_filtered.items():
+        if k not in threads.keys():
+            continue
+        axis = next(ax_iter)
+        for t in threads[k]:
+            t.plot_detailed(ax=axis, color="g")
+        axis.set_ylim(bottom=1)
+        axis.set_ylabel("mailcount")
+        axis2 = axis.twinx()
+        axis2.set_ylabel("T [°C] at 14:00")
+        axis2.plot( df.index, df.values, linestyle="none", marker="x", color="r" )
+
+    plt.show()
+
 
 if __name__ == "__main__":
     config = configparser.ConfigParser()
@@ -355,5 +393,5 @@ if __name__ == "__main__":
             print("\t", t.duration, t.root.get_subject())
 
 
-    plot_detailed(by_count, t_wien)
-
+    # plot_detailed(by_count, t_wien)
+    plot_detailed_only_above_temp(intern, zamg_dfs, 20)
