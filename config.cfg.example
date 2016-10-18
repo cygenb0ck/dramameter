@@ -1,0 +1,10 @@
+[MAILMAN]
+username=username
+password=password
+url=mailinglist url
+local_storage=./mailman_archives
+merged_mbox=./mailman_archives/merged.txt
+
+[ZAMG]
+local_storage=./zamg_data/
+filename_pattern=*ZAMG_Jahrbuch.csv
