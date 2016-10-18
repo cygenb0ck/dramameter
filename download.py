@@ -9,7 +9,8 @@ session = None
 config = None
 
 # if True get_archive will not download, assumes data is already on disk
-LOCAL = True
+LOCAL = False
+
 
 def get_archive( archive_name ):
     print("trying to download {0} ...".format(archive_name))
