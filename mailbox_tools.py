@@ -13,6 +13,7 @@ def _extract_date(email):
     date = email.get('Date')
     return parsedate(date)
 
+
 def slope( graph ):
     if len(graph['x_vals']) != len(graph['y_vals']):
         raise  RuntimeError("graph: len(x_vals) != len(y_vals)!")
