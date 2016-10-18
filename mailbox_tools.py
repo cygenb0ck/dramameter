@@ -261,19 +261,8 @@ class Mailbox():
             for t in tpd:
                 t.finalize()
 
-        # TODO: if mailbox is sorted, then just access first and last mail
-        # find start date for mailbox
-        start_threads = self.threads_per_day[list(sorted(self.threads_per_day.keys()))[0]]
-        for thread in start_threads:
-            if self.start == None or thread.start < self.start:
-                self.start = thread.start
-
-        # FIXME: last thread not automatically contain last mail!
-        # find end date for mailbox
-        end_threads = self.threads_per_day[ list(sorted(self.threads_per_day.keys()))[-1] ]
-        for thread in end_threads:
-            if self.end == None or thread.end > self.end:
-                self.end = thread.end
+        self.start = datetime_tools.get_utc_datetime_from_string_with_timezone( self._mbox[ 0]["Date"] )
+        self.end   = datetime_tools.get_utc_datetime_from_string_with_timezone( self._mbox[len(self._mbox)-1]["Date"] )
 
         print("\nthreads started on ", self.start.isoformat())
         print("threads ended on   ", self.end.isoformat())

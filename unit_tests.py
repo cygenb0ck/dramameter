@@ -41,6 +41,19 @@ class TestMailBoxTools(unittest.TestCase):
             tz = datetime.datetime.strftime( m.get_utc_datetime(), "%Z" )
             self.assertEqual( tz, "UTC" )
 
+    def test_start_and_end_date(self):
+        mail_start_date = None
+        mail_end_date = None
+        for m in self.mailbox.mails.values():
+            if mail_start_date is None or mail_start_date > m.get_utc_datetime():
+                mail_start_date = m.get_utc_datetime()
+            if mail_end_date is None or mail_end_date < m.get_utc_datetime():
+                mail_end_date = m.get_utc_datetime()
+
+        self.assertEqual(self.mailbox.start, mail_start_date)
+        self.assertEqual(self.mailbox.end, mail_end_date)
+
+
     # test that no thread has a replyed-to mail in the mailbox
     def test_threads(self):
         for threads in self.mailbox.threads_per_day.values():
