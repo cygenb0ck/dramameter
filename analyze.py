@@ -31,8 +31,10 @@ datetime_patterns = [
 #key_pattern = "%Y-%m-%d-%H" # "2008-08-28-12"
 key_pattern = "%Y-%m-%d" # "2008-08-28"
 
+
 class DateFormatException(Exception):
     pass
+
 
 class DatetimeEncoder(json.JSONEncoder):
 
@@ -43,10 +45,12 @@ class DatetimeEncoder(json.JSONEncoder):
 
         return json.JSONEncoder.default(self, obj)
 
+
 def save_pretty_json( json_data, filename ):
     outfile = open( filename, "w")
     outfile.write( json.dumps(json_data, indent = 4, sort_keys = True, cls=DatetimeEncoder ) )
     outfile.close()
+
 
 def load_json( filename ):
     raw_data  = open( filename ).read()
@@ -115,15 +119,13 @@ def get_datetime_from_string( d_str ):
     raise DateFormatException("Cannot parse ", d_str)
 
 
-
-
 def get_mails_per_interval(mbox, interval_pattern):
     print("getting mails per hour")
     mails_per_interval = dict()
     for k, v in mbox.items():
         d_str = v['Date']
 
-        if d_str == None:
+        if d_str is None:
             continue
 
         dt_obj = get_datetime_from_string(d_str)
@@ -132,8 +134,7 @@ def get_mails_per_interval(mbox, interval_pattern):
         if dt_key not in mails_per_interval:
             mails_per_interval[dt_key] = 0
 
-        #mails_per_day.setdefault( dt_key, 0 ).__add__(1)
-        mails_per_interval[dt_key] = mails_per_interval[dt_key] + 1
+        mails_per_interval[dt_key] += 1
 
     return mails_per_interval
 
@@ -342,7 +343,7 @@ if __name__ == "__main__":
 
     #mpd = get_mails_per_interval(mbox, key_pattern)
     # save_pretty_json(mpd, "mpd.json")
-    mpd = load_json("mpd.json")
+    # mpd = load_json("mpd.json")
 
     zamg_list = zamg.transpose_files(config['ZAMG']['local_storage'], config['ZAMG']['filename_pattern'])
     zamg_dfs = zamg.open_files(zamg_list)
