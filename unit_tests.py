@@ -34,7 +34,7 @@ class TestDateTimeTools(unittest.TestCase):
 class TestMailBoxTools(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        self.mailbox = mailbox_tools.Mailbox("./mailman_archives/2006-May.txt", True, True)
+        self.mailbox = mailbox_tools.Mailbox("./mailman_archives/2006-May.txt")
 
     def test_mail_dates_utc(self):
         for m in self.mailbox.mails.values():

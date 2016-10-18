@@ -182,7 +182,7 @@ class MailThread():
 
 
 class Mailbox():
-    def __init__(self, mbox_file, sort = False, fix = False):
+    def __init__(self, mbox_file ):
         p = pathlib.Path(mbox_file)
         if not p.is_file():
             raise IOError("file not found: ", mbox_file)
@@ -194,12 +194,11 @@ class Mailbox():
         self.end = None
         # assume unsorted mailbox
         self.sorted = False
+        self.fixed = False
         self.p_vals = []
 
-        if fix:
-            self._fix_mbox()
-        if sort:
-            self._sort_mbox()
+        self._fix_mbox()
+        self._sort_mbox()
 
         self.mails = {}
         print("creating {0} mails".format(len(self._mbox.keys())))
@@ -222,12 +221,13 @@ class Mailbox():
                 print("found a mail without date - removing from mailbox ...")
                 self._mbox.remove(k)
         self._mbox.flush()
-        self.sorted = True
+        self.fixed = True
 
     def _sort_mbox(self):
         sorted_emails = sorted(self._mbox, key=_extract_date)
         self._mbox.update(enumerate(sorted_emails))
         self._mbox.flush()
+        self.sorted = True
 
     def build_threads(self):
         if self._built_threads is True:
