@@ -363,8 +363,8 @@ if __name__ == "__main__":
     config.read('config.cfg')
 
     # intern = mailbox_tools.Mailbox("./mailman_archives/2006-May.txt")
-    intern = mailbox_tools.Mailbox( "./mailman_archives/2015_merged.txt" )
-    # intern = mailbox_tools.Mailbox( config['MAILMAN']['merged_mbox'] )
+    # intern = mailbox_tools.Mailbox( "./mailman_archives/2015_merged.txt" )
+    intern = mailbox_tools.Mailbox( config['MAILMAN']['merged_mbox'] )
 
     # find_date_formats(mbox)
 
@@ -404,5 +404,5 @@ if __name__ == "__main__":
             print("\t", t.duration, t.root.get_subject())
 
 
-    plot_detailed_one_thread_per_chart(by_count, t_wien)
-    # plot_detailed_all_threads_above_temp_one_chart_per_year(intern, zamg_dfs, 20)
+    # plot_detailed_one_thread_per_chart(by_count, t_wien)
+    plot_detailed_all_threads_above_temp_one_chart_per_year(intern, zamg_dfs, 20)
