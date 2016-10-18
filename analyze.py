@@ -261,30 +261,54 @@ def plot_detailed_one_thread_per_chart(threads_by, zamg_df = None):
         for t in threads:
             total_threads += 1
 
-    fig, ax1 = plt.subplots( nrows = total_threads, sharex=False, sharey=False )
-    ax_iter = iter(ax1)
-    for threads in threads_by.values():
-        for t in threads:
-            ax = next(ax_iter)
-            title = "{0} / {1} - {2}".format(t.root.get_subject(),
-                                             datetime.datetime.strftime(t.start, "%Y-%m-%d %H:%M"),
-                                             datetime.datetime.strftime(t.end, "%Y-%m-%d %H:%M"))
-            ax.set_title(title)
-            ax.set_ylabel("mail count")
-            t.plot_detailed(ax=ax)
-            # t.plot(ax=ax)
-            if zamg_df is not None:
-                delta_24h = datetime.timedelta(hours=24)
-                df_for_thread = zamg_df.loc[(zamg_df.index > t.start-delta_24h) & (zamg_df.index < t.end+delta_24h)]
-                if len(df_for_thread.values) == 0:
-                    continue
-                ax2 = ax.twinx()
-                # # pandas plot issue
-                # # x_compat=True is needed to avoid the pandas-plot issue
-                # # see https://github.com/pydata/pandas/issues/14322
-                # df_for_thread.plot(ax=ax2, x_compat=True)
+    if total_threads == 0:
+        print("no threds to plot!")
+        return
+
+    # workaround, because iterator does not work if we have only one row
+    if total_threads == 1:
+        fig, ax1 = plt.subplots(nrows = 1, sharex=False, sharey=False )
+        t = next(iter(threads_by.values()))[0]
+        title = "{0} / {1} - {2}".format(t.root.get_subject(),
+                                         datetime.datetime.strftime(t.start, "%Y-%m-%d %H:%M"),
+                                         datetime.datetime.strftime(t.end, "%Y-%m-%d %H:%M"))
+        ax1.set_title(title)
+        ax1.set_ylabel("mail count")
+        t.plot_detailed(ax=ax1)
+        if zamg is not None:
+            delta_24h = datetime.timedelta(hours=24)
+            df_for_thread = zamg_df.loc[(zamg_df.index > t.start - delta_24h) & (zamg_df.index < t.end + delta_24h)]
+            if len(df_for_thread.values) > 0:
+                ax2 = ax1.twinx()
                 ax2.plot(df_for_thread.index, df_for_thread.values, linestyle="--")
                 ax2.set_ylabel("temperature at 14:00 [°C]")
+
+    else:
+
+        fig, ax1 = plt.subplots( nrows = total_threads, sharex=False, sharey=False )
+        ax_iter = iter(ax1)
+        for threads in threads_by.values():
+            for t in threads:
+                ax = next(ax_iter)
+                title = "{0} / {1} - {2}".format(t.root.get_subject(),
+                                                 datetime.datetime.strftime(t.start, "%Y-%m-%d %H:%M"),
+                                                 datetime.datetime.strftime(t.end, "%Y-%m-%d %H:%M"))
+                ax.set_title(title)
+                ax.set_ylabel("mail count")
+                t.plot_detailed(ax=ax)
+                # t.plot(ax=ax)
+                if zamg_df is not None:
+                    delta_24h = datetime.timedelta(hours=24)
+                    df_for_thread = zamg_df.loc[(zamg_df.index > t.start-delta_24h) & (zamg_df.index < t.end+delta_24h)]
+                    if len(df_for_thread.values) == 0:
+                        continue
+                    ax2 = ax.twinx()
+                    # # pandas plot issue
+                    # # x_compat=True is needed to avoid the pandas-plot issue
+                    # # see https://github.com/pydata/pandas/issues/14322
+                    # df_for_thread.plot(ax=ax2, x_compat=True)
+                    ax2.plot(df_for_thread.index, df_for_thread.values, linestyle="--")
+                    ax2.set_ylabel("temperature at 14:00 [°C]")
     plt.show()
     # plt.savefig("threads.png", bbox_inches="tight")
 
@@ -300,8 +324,6 @@ def plot_detailed_all_threads_above_temp_one_chart_per_year(mailbox, zamg_dfs, t
         t = mailbox.get_threads_active_on_dates(date_list)
         if len(t) > 0:
             threads[k] = t
-
-    print("---->", len(threads.keys()))
 
     # workaround, because iterator does not work if we have only one row
     if len(threads.keys()) == 1:
@@ -367,7 +389,7 @@ if __name__ == "__main__":
 
 
     print("----- by count -----")
-    by_count = intern.get_threads_by_count(min=40)
+    by_count = intern.get_threads_by_count(min=65)
     by_count = ordereddict_from_dict_sorted_by_key_inverse(by_count)
     for k, threads in by_count.items():
         print(k)
@@ -383,4 +405,4 @@ if __name__ == "__main__":
 
 
     plot_detailed_one_thread_per_chart(by_count, t_wien)
-    plot_detailed_all_threads_above_temp_one_chart_per_year(intern, zamg_dfs, 20)
+    # plot_detailed_all_threads_above_temp_one_chart_per_year(intern, zamg_dfs, 20)
