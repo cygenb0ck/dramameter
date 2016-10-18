@@ -30,3 +30,9 @@ Currently, only "ZAMG Jahrbuch" is supported. Get them at https://www.zamg.ac.at
 ## License
 
 MIT
+
+
+## Example output
+
+![dramameter 1](https://metalab.at/wiki/images/a/a7/Dramameter_1_anon.png)
+![dramameter 1](https://metalab.at/wiki/images/3/31/Dramameter_2.png)
