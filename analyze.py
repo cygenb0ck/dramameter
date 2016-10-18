@@ -254,7 +254,8 @@ def plot_pvals_filtered_dfs(p_vals, filtered_dfs, years = None):
 
     plt.show()
 
-def plot_detailed(threads_by, zamg_df = None):
+
+def plot_detailed_one_thread_per_chart(threads_by, zamg_df = None):
     total_threads = 0
     for threads in threads_by.values():
         for t in threads:
@@ -288,7 +289,7 @@ def plot_detailed(threads_by, zamg_df = None):
     # plt.savefig("threads.png", bbox_inches="tight")
 
 
-def plot_detailed_only_above_temp( mailbox, zamg_dfs, temp ):
+def plot_detailed_all_threads_above_temp_one_chart_per_year(mailbox, zamg_dfs, temp):
     column_descriptor = ('Wien Hohe Warte', '48,2486', '16,3564', '198.0', 'Anhöhe', 'Ebene', 'Lufttemperatur',
                          'Lufttemperatur um 14 MEZ (°C)')
     df_filtered = zamg.get_dfs_where_val_gt(zamg_dfs, column_descriptor, temp)
@@ -307,9 +308,12 @@ def plot_detailed_only_above_temp( mailbox, zamg_dfs, temp ):
         fig, axis = plt.subplots(nrows=1, sharex=False, sharey=False)
         key = next( iter( threads.keys() ) )
         for t in threads[key]:
-            t.plot(ax=axis, color="g")
+            # t.plot_detailed(ax=axis, color="g")
+            t.plot_detailed(ax=axis)
         axis2 = axis.twinx()
         df = df_filtered[key]
+        axis2.set_ylabel("T [°C] at 14:00")
+        # axis2.set_ylim(bottom=15, top=40)
         axis2.plot(df.index, df.values, linestyle="--", color="r")
     else:
         fig, axes = plt.subplots( nrows=len(threads.keys()), sharex=False, sharey=False )
@@ -321,7 +325,8 @@ def plot_detailed_only_above_temp( mailbox, zamg_dfs, temp ):
                 continue
             axis = next(ax_iter)
             for t in threads[k]:
-                t.plot_detailed(ax=axis, color="g")
+                # t.plot_detailed(ax=axis, color="g")
+                t.plot_detailed(ax=axis)
             axis.set_ylim(bottom=1)
             axis.set_ylabel("mailcount")
             axis2 = axis.twinx()
@@ -361,35 +366,8 @@ if __name__ == "__main__":
     t_wien = zamg_df.loc[:,column_descriptor]
 
 
-    # # pattern "%Y-%m-%d-%H" leads to hour-resolution
-    # i_p_vals = intern.get_plot_values("%Y-%m-%d-%H %Z")
-    # s_vals = intern.thread_slopes()
-    #
-    # # plt.clf()
-    # fig, ax1 = plt.subplots()
-    # ax2 = ax1.twinx()
-    #
-    # ax1.set_ylabel("Threads")
-    #
-    # for p_vals in i_p_vals:
-    #     # ax1.plot( p_vals['x_vals'], p_vals['y_vals'])
-    #     ax1.plot(p_vals['x_vals'], p_vals['y_vals'], color="b")
-    # for s in s_vals:
-    #     ax1.plot( s['x_vals'], s['y_vals'], color='g', marker="x" )
-    #
-    # # ax2.set_ylabel("Temperature [°C]")
-    # ax2.set_ylabel(column_descriptor[-1])
-    # ax2.set_ylim([-30, 60])
-    #
-    #
-    # # x_compat=True is needed to avoid the pandas-plot issue
-    # # see https://github.com/pydata/pandas/issues/14322
-    # t_wien.plot( ax=ax2, x_compat=True, color="r" )
-    #
-    #
-    # plt.show()
     print("----- by count -----")
-    by_count = intern.get_threads_by_count(min=65)
+    by_count = intern.get_threads_by_count(min=40)
     by_count = ordereddict_from_dict_sorted_by_key_inverse(by_count)
     for k, threads in by_count.items():
         print(k)
@@ -404,5 +382,5 @@ if __name__ == "__main__":
             print("\t", t.duration, t.root.get_subject())
 
 
-    # plot_detailed(by_count, t_wien)
-    plot_detailed_only_above_temp(intern, zamg_dfs, 20)
+    plot_detailed_one_thread_per_chart(by_count, t_wien)
+    plot_detailed_all_threads_above_temp_one_chart_per_year(intern, zamg_dfs, 20)
