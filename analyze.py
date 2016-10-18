@@ -17,23 +17,9 @@ import pandas
 
 config = None
 
-
-datetime_patterns = [
-    "%a, %d %b %Y %H:%M:%S %z",       # "Sun, 30 Apr 2006 19:19:01 +0200"
-    "%a, %d %b %Y %H:%M:%S %Z",       # "Fri, 25 Jul 2014 16:48:04 GMT"
-    "%a, %d %b %Y %H:%M %z",          # "Tue, 11 Jun 2013 09:00 +0200"
-    "%d %b %Y %H:%M:%S %z"            # "28 Aug 2008 12:58:53 +0000"
-    #"%a, %d %b %Y %H:%M:%S %z (%Z)",  # "Mon, 8 Aug 2016 19:27:36 +0000 (UTC)"
-    #"%a, %d %b %Y %H:%M:%S %z (PDT)", # "Thu, 6 Jun 2013 08:43:06 -0700 (PDT)"
-    #"%a, %d %b %Y %H:%M:%S %z (EST)"  # "Sat, 9 Feb 2013 21:56:22 -0500 (EST)"
-]
-
 #key_pattern = "%Y-%m-%d-%H" # "2008-08-28-12"
 key_pattern = "%Y-%m-%d" # "2008-08-28"
 
-
-class DateFormatException(Exception):
-    pass
 
 
 class DatetimeEncoder(json.JSONEncoder):
@@ -73,52 +59,6 @@ def ordereddict_from_dict_sorted_by_key_inverse( d ):
     return od
 
 
-def find_date_formats(mbox):
-    print("checking date formats")
-    for k, v in mbox.items():
-        d_str = v['Date']
-
-        # mail archive contains one message with has no date
-        if d_str is None:
-            continue
-
-        # remove timezone string identifier so we dont have to have use
-        # a separate pettern for each unsupported timezone
-        d_str = d_str.split(' (')[0]
-
-        parseable = False
-        for d_pattern in datetime_patterns:
-            try:
-                d_obj = datetime.datetime.strptime(d_str, d_pattern)
-                parseable = True
-                break
-            except ValueError:
-                pass
-            except TypeError:
-                print("caught TypeError!")
-                print("k:         ", k)
-                print("d_str:     ", d_str)
-                print("d_pattern: ", d_pattern)
-
-        if not parseable:
-            print("could not convert \"{0}\" with current patterns".format(d_str))
-            return
-
-
-def get_datetime_from_string( d_str ):
-    d_str = d_str.split(' (')[0]
-    for d_pattern in datetime_patterns:
-        try:
-            d_obj = datetime.datetime.strptime(d_str, d_pattern)
-            return d_obj
-        except ValueError:
-            pass
-        except TypeError:
-            print("caught TypeError!")
-            print("d_str:     ", d_str)
-    raise DateFormatException("Cannot parse ", d_str)
-
-
 def get_mails_per_interval(mbox, interval_pattern):
     print("getting mails per hour")
     mails_per_interval = dict()
@@ -127,8 +67,7 @@ def get_mails_per_interval(mbox, interval_pattern):
 
         if d_str is None:
             continue
-
-        dt_obj = get_datetime_from_string(d_str)
+        dt_obj = datetime_tools.get_utc_datetime_from_string_with_timezone(d_str)
         dt_key = datetime.datetime.strftime(dt_obj, interval_pattern)
 
         if dt_key not in mails_per_interval:
