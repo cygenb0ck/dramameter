@@ -1,14 +1,6 @@
-
-https://www.zamg.ac.at/cms/de/klima/klimauebersichten/jahrbuch
-hat die klimadaten als csv
-
-
-tasks:
 - zamg: index only shows date, columns time on this day
 
 - identify flamewars & [DRAMA] threads
-
-- plot identified threads: mails per day
 
 - find correlation
 
