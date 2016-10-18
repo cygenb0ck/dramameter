@@ -5,6 +5,7 @@ import datetime
 import pytz
 import dateutil.parser
 import json
+import os
 
 import matplotlib.pyplot as plt
 import matplotlib
@@ -298,6 +299,10 @@ def plot_detailed_all_threads_above_temp_one_chart_per_year(mailbox, zamg_dfs, t
 
 
 if __name__ == "__main__":
+    if not os.path.isfile('config.cfg'):
+        print("config.cfg not available. please create one based on config.cfg.example")
+        quit()
+
     config = configparser.ConfigParser()
     config.read('config.cfg')
 

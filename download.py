@@ -50,6 +50,10 @@ def merge_archives(archive_list, dest):
 
 
 if __name__ == "__main__":
+    if not os.path.isfile('config.cfg'):
+        print("config.cfg not available. please create one based on config.cfg.example")
+        quit()
+
     config = configparser.ConfigParser()
     config.read('config.cfg')
 
